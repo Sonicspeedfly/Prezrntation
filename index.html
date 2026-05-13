@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shattered Dimensions // CrystalCore</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   GLOBAL
+═══════════════════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:100%; height:100%;
+  background:#000;
+  font-family:'Courier New', Courier, monospace;
+  overflow:hidden;
+  cursor:default;
+  user-select:none;
+}
+.layer { position:fixed; inset:0; display:none; z-index:10; }
+.layer.active { display:flex; }
+
+/* ═══════════════════════════════════════════════════════
+   LAYER 1 — CRYSTALCORE SPLASH
+═══════════════════════════════════════════════════════ */
+#splash {
+  background:#000; flex-direction:column;
+  align-items:center; justify-content:center; z-index:100;
+}
+#splash-canvas { position:absolute; inset:0; pointer-events:none; }
+.cc-logo-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+  position:relative; z-index:2; opacity:0;
+  animation:splashFadeIn 1.2s ease 0.8s forwards;
+}
+@keyframes splashFadeIn {
+  from { opacity:0; transform:scale(0.92); }
+  to   { opacity:1; transform:scale(1); }
+}
+.cc-crystal-svg {
+  filter:drop-shadow(0 0 14px rgba(180,220,255,0.55)) drop-shadow(0 0 36px rgba(100,180,255,0.28));
+  animation:crystalFloat 3s ease-in-out infinite;
+}
+@keyframes crystalFloat {
+  0%,100% { transform:translateY(0) rotate(0deg); }
+  50%     { transform:translateY(-9px) rotate(1.2deg); }
+}
+.cc-name {
+  font-family:Georgia,'Times New Roman',serif; font-style:italic;
+  font-size:clamp(28px,5vw,50px); color:#e8f0ff; letter-spacing:3px;
+  text-shadow:0 0 20px rgba(150,200,255,0.65),0 0 52px rgba(100,150,255,0.32);
+  animation:ccNameGlow 2.5s ease-in-out infinite;
+}
+@keyframes ccNameGlow {
+  0%,100% { text-shadow:0 0 20px rgba(150,200,255,0.65),0 0 52px rgba(100,150,255,0.32); }
+  50%     { text-shadow:0 0 32px rgba(180,220,255,0.95),0 0 86px rgba(120,180,255,0.55); }
+}
+.cc-tagline {
+  font-size:clamp(9px,1.2vw,12px); color:#6090c0; letter-spacing:5px;
+  text-transform:uppercase; opacity:0; animation:splashFadeIn 1s ease 2s forwards;
+}
+.cc-loading-bar {
+  width:190px; height:2px; background:#0a1520; margin-top:22px; overflow:hidden;
+  border:1px solid #1a3050;
+}
+.cc-loading-fill {
+  height:100%; background:linear-gradient(90deg,#4080c0,#a0d0ff,#4080c0);
+  width:0%; animation:ccLoad 2.5s ease 1.5s forwards;
+}
+@keyframes ccLoad { 0%{width:0%} 80%{width:95%} 100%{width:100%} }
+
+/* ═══════════════════════════════════════════════════════
+   LAYER 2 — GAME MENU
+═══════════════════════════════════════════════════════ */
+#game-menu { z-index:90; position:fixed; inset:0; display:none; flex-direction:column; overflow:hidden; }
+#game-menu.active { display:flex; }
+#menu-bg-canvas { position:absolute; inset:0; z-index:0; }
+#ghost-canvas    { position:absolute; inset:0; z-index:1; pointer-events:none; }
+.menu-vignette {
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 20%,rgba(0,0,0,0.32) 55%,rgba(0,0,0,0.78) 100%);
+}
+.menu-left-grad {
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:linear-gradient(90deg,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.5) 38%,transparent 68%);
+}
+.menu-content {
+  position:relative; z-index:3; display:flex; flex-direction:column;
+  height:100%; padding:clamp(20px,5vh,52px) clamp(24px,6vw,82px);
+}
+.game-title {
+  font-family:Georgia,serif; font-size:clamp(26px,5.5vw,58px); color:#fff;
+  font-style:italic; letter-spacing:2px; margin-bottom:clamp(28px,6vh,62px);
+  line-height:1.1; animation:titleBreath 4s ease-in-out infinite;
+  text-shadow:2px 2px 0 #000,0 0 30px rgba(100,220,200,0.4);
+}
+@keyframes titleBreath {
+  0%,100% { text-shadow:2px 2px 0 #000,0 0 28px rgba(100,220,200,0.38); }
+  50%     { text-shadow:2px 2px 0 #000,0 0 52px rgba(120,240,220,0.72),0 0 90px rgba(80,180,160,0.32); }
+}
+.menu-buttons { display:flex; flex-direction:column; gap:clamp(7px,1.4vh,13px); }
+.menu-btn {
+  position:relative; width:clamp(200px,28vw,320px);
+  padding:clamp(10px,1.5vh,14px) clamp(20px,2.5vw,32px);
+  background:rgba(255,255,255,0.93); border:none; cursor:pointer;
+  font-family:'Courier New',monospace; font-size:clamp(11px,1.6vw,15px);
+  font-weight:bold; letter-spacing:3px; color:#111; text-transform:uppercase;
+  transition:background 0.18s,color 0.18s,transform 0.14s,box-shadow 0.18s,letter-spacing 0.18s;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+  text-align:center; z-index:1;
+}
+.menu-btn::before {
+  content:''; position:absolute; inset:-3px; background:transparent;
+  border:2px solid rgba(255,255,255,0.5);
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+  opacity:0; transition:opacity 0.18s;
+}
+.menu-btn:hover::before { opacity:1; }
+.menu-btn:hover {
+  background:rgba(0,30,20,0.92); color:#7effd8;
+  transform:translateX(9px) scaleY(1.04);
+  box-shadow:-5px 0 22px rgba(80,220,180,0.45),5px 0 22px rgba(80,220,180,0.2);
+  letter-spacing:4.5px;
+}
+.menu-btn:active { transform:translateX(4px) scaleY(0.97); box-shadow:none; }
+.menu-btn-glow {
+  position:absolute; left:-6px; top:20%; bottom:20%;
+  width:3px; background:#7effd8; box-shadow:0 0 10px #7effd8;
+  opacity:0; transition:opacity 0.18s; pointer-events:none;
+}
+.menu-btn:hover .menu-btn-glow { opacity:1; }
+
+/* ── SUBMENU PANELS ── */
+.submenu-panel {
+  position:absolute; inset:0; z-index:5;
+  background:rgba(0,5,10,0.94); display:flex; flex-direction:column;
+  align-items:center; justify-content:center; opacity:0;
+  pointer-events:none; transition:opacity 0.38s; padding:40px;
+}
+.submenu-panel.open { opacity:1; pointer-events:all; }
+.submenu-title {
+  font-size:clamp(18px,3vw,32px); color:#7effd8; letter-spacing:6px;
+  text-transform:uppercase; margin-bottom:28px;
+  text-shadow:0 0 22px rgba(80,220,180,0.65);
+}
+.submenu-back {
+  margin-top:28px; padding:10px 30px; background:transparent;
+  border:1px solid #3a6050; color:#5aaa80; font-family:'Courier New',monospace;
+  font-size:12px; letter-spacing:3px; cursor:pointer; text-transform:uppercase;
+  transition:all 0.2s;
+}
+.submenu-back:hover { background:#3a6050; color:#fff; box-shadow:0 0 15px rgba(80,200,150,0.4); }
+
+/* ── SETTINGS PANEL ── */
+.settings-grid { display:flex; flex-direction:column; gap:0; width:100%; max-width:440px; }
+.setting-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 16px; border-bottom:1px solid #0d2820; cursor:pointer;
+  transition:background 0.15s;
+}
+.setting-row:first-child { border-top:1px solid #0d2820; }
+.setting-row:hover { background:rgba(80,220,180,0.06); }
+.setting-label { color:#5a8870; font-size:13px; letter-spacing:2px; text-transform:uppercase; }
+.setting-value { color:#7effd8; font-size:13px; letter-spacing:2px; }
+/* slider */
+.setting-slider {
+  display:flex; align-items:center; gap:8px;
+}
+.slider-track {
+  width:100px; height:4px; background:#0d2820; position:relative; border:1px solid #1a4030;
+}
+.slider-fill {
+  height:100%; background:linear-gradient(90deg,#3a8060,#7effd8);
+  transition:width 0.15s;
+}
+.slider-thumb {
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:10px; height:10px; border-radius:50%; background:#7effd8;
+  box-shadow:0 0 6px #7effd8; transition:left 0.15s;
+}
+.slider-val { color:#7effd8; font-size:11px; min-width:28px; text-align:right; }
+
+/* ── EXTRA PANEL ── */
+.extra-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:14px;
+  max-width:420px; margin:0 auto;
+}
+.extra-card {
+  border:1px solid #1a3025; padding:18px; text-align:center;
+  color:#3a5545; transition:all 0.2s; position:relative; overflow:hidden;
+}
+.extra-card.unlocked { border-color:#1a4535; cursor:pointer; }
+.extra-card.unlocked:hover { background:rgba(80,200,150,0.06); border-color:#2a6050; }
+.extra-card .ec-icon { font-size:24px; margin-bottom:8px; }
+.extra-card .ec-label { font-size:11px; letter-spacing:2px; color:#4a8560; }
+.extra-card .ec-sub { font-size:9px; margin-top:4px; color:#2a5040; }
+.extra-card.locked .ec-label { color:#3a5545; }
+
+/* ── MENU WATERMARK ── */
+.menu-watermark {
+  position:absolute; bottom:clamp(10px,2vh,20px); right:clamp(10px,2vw,24px);
+  z-index:4; display:flex; align-items:center; gap:8px; opacity:0.72;
+  transition:opacity 0.3s; cursor:default;
+}
+.menu-watermark:hover { opacity:1; }
+.menu-watermark svg { filter:drop-shadow(0 0 4px rgba(180,220,255,0.4)); }
+.menu-watermark-name {
+  font-family:Georgia,serif; font-style:italic; color:#c0d8f0;
+  font-size:clamp(10px,1.3vw,13px); letter-spacing:1px;
+  text-shadow:0 0 10px rgba(150,200,255,0.5);
+}
+.menu-version {
+  position:absolute; bottom:clamp(10px,2vh,20px); left:clamp(24px,6vw,82px);
+  z-index:4; font-size:10px; color:#1e3030; letter-spacing:2px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LAYER 3 — BOOT / CRASH
+═══════════════════════════════════════════════════════ */
+#boot-screen { z-index:200; background:#000; flex-direction:column; align-items:center; justify-content:center; padding:40px; }
+.boot-logo-line {
+  font-size:clamp(11px,1.8vw,16px); color:#cc2222; letter-spacing:5px;
+  margin-bottom:20px; animation:bootGlow 2s ease-in-out infinite;
+}
+@keyframes bootGlow {
+  0%,100% { text-shadow:0 0 4px #ff0000; }
+  50%     { text-shadow:0 0 14px #ff0000,0 0 26px #ff000044; }
+}
+#boot-lines { width:min(680px,90vw); font-size:clamp(10px,1.3vw,13px); line-height:1.78; min-height:268px; }
+.bline { display:block; opacity:0; color:#cc2222; transition:opacity 0.08s; }
+.bline.vis { opacity:1; }
+.bline.ok   { color:#00cc44; }
+.bline.err  { color:#ff1111; }
+.bline.warn { color:#ffaa00; }
+.bline.dim  { color:#441111; }
+#boot-progress-wrap { width:min(680px,90vw); height:2px; background:#110000; margin-top:12px; overflow:hidden; }
+#boot-progress {
+  height:100%; background:linear-gradient(90deg,#cc0000,#ff4400,#cc0000);
+  width:0%; transition:width 0.22s; box-shadow:0 0 6px #ff0000;
+}
+#boot-status-text { width:min(680px,90vw); font-size:10px; color:#551111; letter-spacing:2px; margin-top:6px; min-height:16px; }
+#crash-panel { display:none; position:absolute; inset:0; background:#000; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
+#crash-panel.show { display:flex; }
+#crash-big {
+  font-size:clamp(32px,7vw,74px); color:#fff; letter-spacing:5px; font-weight:bold;
+  animation:crashRGB 0.08s infinite, crashShake 0.12s infinite; text-align:center; margin-bottom:16px;
+}
+@keyframes crashRGB {
+  0%   { text-shadow:-3px 0 #ff0000,3px 0 #00ffff; }
+  33%  { text-shadow:3px 0 #ff0000,-3px 0 #00ffff; }
+  66%  { text-shadow:0 3px #ff0000,0 -3px #00ffff; }
+  100% { text-shadow:-3px 0 #ff0000,3px 0 #00ffff; }
+}
+@keyframes crashShake {
+  0%,100% { transform:translate(0,0); }
+  20% { transform:translate(-6px,2px); }
+  40% { transform:translate(6px,-2px); }
+  60% { transform:translate(-3px,3px); }
+  80% { transform:translate(3px,-3px); }
+}
+#crash-sub { color:#ff3333; font-size:clamp(9px,1.3vw,13px); letter-spacing:2px; text-align:center; line-height:1.85; animation:crashSkew 0.25s infinite; }
+@keyframes crashSkew { 0%,100%{transform:skewX(0)} 30%{transform:skewX(-2deg)} 70%{transform:skewX(1.5deg)} }
+#crash-trace { margin-top:16px; font-size:clamp(8px,1vw,11px); color:#331111; text-align:center; line-height:2; }
+
+/* ═══════════════════════════════════════════════════════
+   LAYER 4 — PRESENTATION APP
+═══════════════════════════════════════════════════════ */
+:root {
+  --red:#ff3333; --red-dim:#cc1111; --red-glow:#ff000066;
+  --red-faint:#ff333318; --bg:#030000; --bg2:#080000;
+  --text:#ff3333; --text-dim:#aa3333; --text-faint:#441111;
+  --white:#f0d0d0; --amber:#ffb300; --green:#00ff41;
+  --border:#2a0000; --border-b:#770000;
+}
+#app { z-index:80; background:var(--bg); flex-direction:column; animation:appFlicker 10s ease-in-out infinite; }
+@keyframes appFlicker { 0%,100%,96%{opacity:1} 93%{opacity:0.87} 94%{opacity:1} 95%{opacity:0.8} }
+#char-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.1; }
+#app::before {
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,0.14) 2px,rgba(0,0,0,0.14) 4px);
+  pointer-events:none; z-index:9998; animation:scanMove 0.08s linear infinite;
+}
+@keyframes scanMove { from{background-position:0 0} to{background-position:0 4px} }
+#app::after {
+  content:''; position:fixed; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,transparent,rgba(255,51,51,0.5),transparent);
+  z-index:9999; pointer-events:none; animation:vhsRoll 7s linear infinite;
+}
+@keyframes vhsRoll { 0%{top:0;opacity:0.8} 100%{top:100%;opacity:0.2} }
+
+/* HEADER */
+#hdr {
+  position:relative; z-index:100; border-bottom:1px solid var(--border);
+  padding:7px 18px; display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0; background:var(--bg);
+}
+#hdr::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--red-dim),transparent);
+}
+#hdr-logo {
+  font-size:clamp(10px,1.6vw,15px); letter-spacing:4px; font-weight:bold;
+  text-transform:uppercase; color:var(--red); animation:redGlow 3s ease-in-out infinite;
+}
+@keyframes redGlow {
+  0%,100% { text-shadow:0 0 4px var(--red),0 0 9px var(--red-glow); }
+  50%     { text-shadow:0 0 9px var(--red),0 0 22px var(--red-glow); }
+}
+#hdr-right { display:flex; align-items:center; gap:12px; font-size:clamp(8px,1vw,10px); color:var(--text-dim); letter-spacing:1px; }
+.dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+.dot-r { background:var(--red); box-shadow:0 0 5px var(--red); animation:blink 1.1s infinite; }
+.dot-a { background:var(--amber); box-shadow:0 0 5px var(--amber); animation:blink 0.72s infinite; }
+.dot-g { background:var(--green); box-shadow:0 0 5px var(--green); animation:blink 1.6s infinite; }
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+/* AUDIO TOGGLE */
+#audio-toggle {
+  padding:3px 10px; background:transparent; border:1px solid var(--border-b);
+  color:var(--text-dim); font-family:'Courier New',monospace; font-size:9px;
+  letter-spacing:2px; cursor:pointer; text-transform:uppercase;
+  transition:all 0.2s; flex-shrink:0;
+}
+#audio-toggle:hover { border-color:var(--red); color:var(--red); box-shadow:0 0 8px var(--red-glow); }
+#audio-toggle.on { border-color:var(--green); color:var(--green); box-shadow:0 0 6px rgba(0,255,65,0.3); }
+
+/* LAYOUT */
+#body { display:flex; flex:1; overflow:hidden; min-height:0; position:relative; z-index:10; }
+#sidebar {
+  width:clamp(155px,19vw,230px); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; flex-shrink:0; background:var(--bg);
+}
+#nav-head { padding:10px 13px 7px; font-size:9px; color:var(--text-faint); letter-spacing:3px; border-bottom:1px solid var(--border); flex-shrink:0; }
+#nav-list { list-style:none; flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border-b) var(--bg); }
+.nitem { border-bottom:1px solid var(--border); }
+.nbtn {
+  width:100%; padding:11px 13px; background:transparent; border:none; color:var(--text-dim);
+  font-family:'Courier New',monospace; font-size:clamp(8px,1.1vw,10px); text-align:left;
+  cursor:pointer; display:flex; flex-direction:column; gap:3px;
+  transition:background 0.18s,color 0.18s,padding-left 0.18s; position:relative;
+  letter-spacing:0.5px; line-height:1.4;
+}
+.nbtn::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
+  background:transparent; transition:background 0.18s,box-shadow 0.18s;
+}
+.nbtn:hover,.nbtn.active { background:var(--red-faint); color:var(--red); padding-left:17px; }
+.nbtn:hover::before,.nbtn.active::before { background:var(--red); box-shadow:0 0 7px var(--red); }
+.nbtn .ni { font-size:8px; color:var(--text-faint); letter-spacing:2px; transition:color 0.18s; }
+.nbtn .nl { font-size:clamp(8px,1vw,10px); letter-spacing:1px; text-transform:uppercase; font-weight:bold; }
+.nbtn:hover .ni,.nbtn.active .ni { color:var(--red-dim); }
+#sidebar-ft { border-top:1px solid var(--border); padding:9px 13px; flex-shrink:0; }
+.sft-label { font-size:8px; color:var(--text-faint); letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
+#int-bar { width:100%; height:2px; background:#110000; overflow:hidden; }
+#int-fill { height:100%; background:linear-gradient(90deg,#ff0000,#ff5500); width:37%; box-shadow:0 0 4px #ff0000; transition:width 1.5s ease; }
+.int-nums { display:flex; justify-content:space-between; font-size:8px; color:var(--text-faint); margin-top:3px; }
+.sft-stats { margin-top:8px; font-size:8px; color:var(--text-faint); letter-spacing:1px; line-height:1.8; }
+#main-area { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
+#content-scroll { flex:1; overflow-y:auto; padding:clamp(14px,2.5vw,30px); scrollbar-width:thin; scrollbar-color:var(--border-b) var(--bg); }
+.slide { display:none; }
+.slide.active { display:block; animation:slideIn 0.4s ease forwards; }
+@keyframes slideIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+
+/* TYPOGRAPHY */
+.s-tag { display:block; font-size:clamp(8px,1vw,10px); color:var(--text-faint); letter-spacing:4px; text-transform:uppercase; margin-bottom:5px; }
+.s-title {
+  font-size:clamp(20px,3.2vw,34px); color:var(--red); letter-spacing:3px;
+  text-transform:uppercase; font-weight:bold; line-height:1.2; margin-bottom:6px;
+  position:relative; animation:redGlow 3s ease-in-out infinite;
+}
+.s-title .g1 { position:absolute; inset:0; color:var(--red); animation:gc1 3.2s infinite linear; opacity:0.65; pointer-events:none; }
+.s-title .g2 { position:absolute; inset:0; color:rgba(0,255,255,0.25); animation:gc2 3.2s infinite linear; pointer-events:none; mix-blend-mode:screen; }
+@keyframes gc1 {
+  0%{clip-path:inset(0 0 96% 0);transform:translateX(-3px)}
+  20%{clip-path:inset(25% 0 55% 0);transform:translateX(3px)}
+  40%{clip-path:inset(55% 0 20% 0);transform:translateX(-2px)}
+  60%{clip-path:inset(80% 0 5% 0);transform:translateX(2px)}
+  80%{clip-path:inset(10% 0 75% 0);transform:translateX(-2px)}
+  100%{clip-path:inset(0 0 96% 0);transform:translateX(0)}
+}
+@keyframes gc2 {
+  0%{clip-path:inset(50% 0 30% 0);transform:translateX(3px)}
+  33%{clip-path:inset(5% 0 85% 0);transform:translateX(-3px)}
+  66%{clip-path:inset(75% 0 8% 0);transform:translateX(2px)}
+  100%{clip-path:inset(50% 0 30% 0);transform:translateX(0)}
+}
+.s-sub { display:block; font-size:clamp(9px,1.2vw,12px); color:var(--amber); letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; opacity:0.85; }
+.s-body { font-size:clamp(12px,1.4vw,14px); color:#e8c8c8; line-height:1.92; margin-bottom:18px; }
+.s-body p { margin-bottom:14px; }
+.s-body strong { color:#ff6666; }
+.s-body em { color:var(--amber); font-style:normal; }
+
+/* CODE BLOCK */
+.cblock {
+  background:#060000; border:1px solid var(--border); border-left:3px solid var(--red-dim);
+  padding:13px 15px; margin:14px 0; font-size:clamp(10px,1.15vw,12px); color:#ff7777;
+  line-height:1.78; position:relative; overflow-x:auto; scrollbar-width:thin;
+}
+.cblock::before { content:attr(data-l); position:absolute; top:0; right:0; padding:2px 8px; background:var(--border); font-size:8px; color:var(--text-faint); letter-spacing:2px; }
+.ck{color:#ff4466} .cf{color:#ff8844} .cs{color:#44ff88} .cn{color:#ffaa44}
+.cc{color:#4d3333;font-style:italic} .ce{color:#ff0000;animation:redGlow 1s infinite}
+
+/* STAT GRID */
+.sgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:9px; margin:16px 0; }
+.scard { background:var(--bg2); border:1px solid var(--border); padding:11px; position:relative; overflow:hidden; }
+.scard::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--red-dim),transparent); }
+.scard .sl { display:block; font-size:9px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+.scard .sv { display:block; font-size:clamp(18px,2.8vw,26px); color:var(--red); font-weight:bold; animation:redGlow 2s ease-in-out infinite; }
+.scard .su { font-size:8px; color:var(--text-faint); letter-spacing:1px; }
+
+/* WARNING BOX */
+.wbox { border:1px solid rgba(255,51,51,0.2); background:#070000; padding:11px 15px 11px 40px; margin:12px 0; font-size:clamp(11px,1.25vw,13px); color:#cc5555; line-height:1.72; position:relative; }
+.wbox::before { content:'⚠'; position:absolute; left:14px; top:11px; color:var(--red); font-size:14px; animation:redGlow 1.5s infinite; }
+.wbox.green { border-color:rgba(0,255,65,0.2); color:#55cc88; }
+.wbox.green::before { content:'✦'; color:var(--green); animation:none; }
+.wbox.amber { border-color:rgba(255,179,0,0.2); color:#cc9933; }
+.wbox.amber::before { content:'◈'; color:var(--amber); animation:none; }
+
+/* TIMELINE */
+.tl { list-style:none; margin:14px 0; padding-left:16px; position:relative; }
+.tl::before { content:''; position:absolute; left:3px; top:0; bottom:0; width:1px; background:linear-gradient(to bottom,var(--red-dim),transparent); }
+.tl li { font-size:clamp(11px,1.3vw,13px); color:#e0c0c0; margin-bottom:14px; line-height:1.7; position:relative; }
+.tl li::before { content:'▶'; position:absolute; left:-16px; top:3px; color:var(--red-dim); font-size:8px; }
+.tl li strong { color:#ff6666; display:block; font-size:clamp(10px,1.2vw,12px); letter-spacing:1px; margin-bottom:2px; text-transform:uppercase; }
+.divider { width:100%; height:1px; background:linear-gradient(90deg,transparent,var(--border-b),transparent); margin:20px 0; }
+.sep { display:flex; align-items:center; gap:10px; margin:18px 0; color:var(--text-faint); font-size:9px; letter-spacing:3px; }
+.sep::before,.sep::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ALICE BAR */
+#alice-bar {
+  border-top:1px solid var(--border); height:clamp(68px,10vh,96px); flex-shrink:0;
+  display:flex; align-items:stretch; background:var(--bg); position:relative;
+  animation:alicePulse 4s ease-in-out infinite; overflow:hidden;
+}
+@keyframes alicePulse {
+  0%,100%{border-color:var(--border);box-shadow:none}
+  50%{border-color:#880000;box-shadow:0 0 20px rgba(255,0,0,0.1) inset}
+}
+#alice-bar::before { content:''; position:absolute; inset:0; background:linear-gradient(90deg,rgba(255,0,0,0.03),transparent,rgba(255,0,0,0.03)); pointer-events:none; }
+#alice-id { width:clamp(75px,11vw,130px); display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:1px solid var(--border); padding:8px; gap:4px; background:var(--bg2); flex-shrink:0; }
+#alice-ava { width:clamp(26px,3.5vw,38px); height:clamp(26px,3.5vw,38px); border:1px solid var(--red-dim); display:flex; align-items:center; justify-content:center; font-size:clamp(12px,1.8vw,18px); color:var(--red); position:relative; animation:avaSpin 20s linear infinite; }
+@keyframes avaSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+#alice-ava::before { content:''; position:absolute; inset:-3px; border:1px solid transparent; border-top-color:var(--red); border-radius:50%; animation:avaSpin 2.5s linear infinite; }
+#alice-nm { font-size:8px; color:var(--text-dim); letter-spacing:2px; text-align:center; }
+#alice-st { font-size:7px; color:rgba(255,0,0,0.5); letter-spacing:1px; animation:blink 2s infinite; }
+#alice-msg-area { flex:1; padding:9px 16px; display:flex; flex-direction:column; justify-content:center; gap:3px; overflow:hidden; }
+#alice-lbl { font-size:8px; color:var(--text-faint); letter-spacing:3px; text-transform:uppercase; }
+#alice-txt {
+  font-size:clamp(11px,1.4vw,14px); color:var(--red); line-height:1.4;
+  animation:redGlow 2s ease-in-out infinite; white-space:nowrap; overflow:hidden;
+  text-overflow:ellipsis; position:relative;
+}
+#alice-txt::after { content:'█'; animation:blink 0.7s infinite; margin-left:2px; font-size:0.85em; }
+#alice-meta { border-left:1px solid var(--border); display:flex; flex-direction:column; justify-content:center; align-items:flex-end; padding:9px 14px; gap:5px; flex-shrink:0; min-width:clamp(80px,11vw,115px); }
+.am { font-size:clamp(7px,0.85vw,9px); color:var(--text-dim); letter-spacing:1px; text-align:right; }
+.am span { color:var(--red-dim); }
+
+/* AUDIO ERROR POPUP */
+#audio-err-popup {
+  position:fixed; bottom:110px; left:50%; transform:translateX(-50%);
+  background:#0a0000; border:1px solid var(--red-dim); padding:6px 16px;
+  font-size:11px; color:var(--red); letter-spacing:2px; z-index:9999;
+  pointer-events:none; opacity:0; transition:opacity 0.3s; white-space:nowrap;
+}
+#audio-err-popup.show { opacity:1; }
+
+/* GLITCH OVERLAY */
+#g-overlay { position:fixed; inset:0; pointer-events:none; z-index:9996; display:none; }
+#g-overlay.on { display:block; }
+#g-overlay::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(255,0,0,0.04) 2px,rgba(255,0,0,0.04) 4px); animation:gSkew 0.08s infinite; }
+@keyframes gSkew { 0%,100%{transform:skewX(0)} 25%{transform:skewX(-1.5deg) scaleX(1.01)} 75%{transform:skewX(1deg)} }
+#g-overlay::after { content:''; position:absolute; left:0; right:0; height:5px; background:rgba(255,51,51,0.7); animation:gBar 0.4s linear infinite; box-shadow:0 0 16px #ff0000; }
+@keyframes gBar { from{top:-5px} to{top:100%} }
+
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border-b); }
+
+@media(max-width:600px) {
+  #sidebar { width:140px; }
+  #alice-meta { display:none; }
+  .sgrid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     LAYER 1: CRYSTALCORE SPLASH
+════════════════════════════════════════════════════ -->
+<div id="splash" class="layer active">
+  <canvas id="splash-canvas"></canvas>
+  <div class="cc-logo-wrap">
+    <svg class="cc-crystal-svg" width="130" height="140" viewBox="0 0 120 130" fill="none">
+      <polygon points="60,4 80,50 60,110 40,50" stroke="#c8e0ff" stroke-width="1.2" fill="rgba(140,200,255,0.06)"/>
+      <polygon points="60,4 80,50 60,55 40,50" stroke="#a0c8f0" stroke-width="0.8" fill="rgba(180,220,255,0.09)"/>
+      <line x1="60" y1="4" x2="60" y2="110" stroke="rgba(200,230,255,0.3)" stroke-width="0.5"/>
+      <polygon points="88,22 96,42 88,68 80,42" stroke="#90b8e0" stroke-width="0.9" fill="rgba(120,180,240,0.05)"/>
+      <polygon points="88,22 96,42 88,46 80,42" stroke="#80a8d0" stroke-width="0.6" fill="rgba(150,200,255,0.07)"/>
+      <polygon points="104,38 109,50 104,62 99,50" stroke="#708090" stroke-width="0.7" fill="rgba(100,150,200,0.04)"/>
+      <polygon points="26,52 33,68 26,84 19,68" stroke="#809ab0" stroke-width="0.8" fill="rgba(110,160,210,0.05)"/>
+      <polygon points="38,78 43,88 38,96 33,88" stroke="#607090" stroke-width="0.6" fill="rgba(90,140,190,0.04)"/>
+      <circle cx="60" cy="4" r="1.8" fill="#d0eaff" opacity="0.95"/>
+      <circle cx="88" cy="22" r="1.2" fill="#b0d0f0" opacity="0.85"/>
+      <circle cx="104" cy="38" r="0.9" fill="#90b0d0" opacity="0.75"/>
+      <line x1="60" y1="4" x2="80" y2="50" stroke="rgba(220,240,255,0.25)" stroke-width="0.5"/>
+      <line x1="60" y1="4" x2="40" y2="50" stroke="rgba(220,240,255,0.25)" stroke-width="0.5"/>
+    </svg>
+    <div class="cc-name">CrystalCore</div>
+    <div class="cc-tagline">INDIE GAME STUDIO · EST. 2024</div>
+    <div class="cc-loading-bar"><div class="cc-loading-fill"></div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     LAYER 2: GAME MENU
+════════════════════════════════════════════════════ -->
+<div id="game-menu" class="layer">
+  <canvas id="menu-bg-canvas"></canvas>
+  <canvas id="ghost-canvas"></canvas>
+  <div class="menu-vignette"></div>
+  <div class="menu-left-grad"></div>
+
+  <!-- LOAD GAME SUB -->
+  <div class="submenu-panel" id="sub-load">
+    <div class="submenu-title">LOAD GAME</div>
+    <div style="max-width:440px;width:100%;text-align:center;">
+      <p style="color:#446655;margin-bottom:18px;letter-spacing:2px;font-size:12px;">// ПОИСК ФАЙЛОВ СОХРАНЕНИЯ...</p>
+      <div style="border:1px solid #1a3025;padding:22px;margin-bottom:14px;">
+        <p style="color:#2a4435;font-size:12px;letter-spacing:2px;margin-bottom:8px;">СОХРАНЕНИЕ НЕ НАЙДЕНО</p>
+        <p style="color:#1a3025;font-size:10px;line-height:1.8;">Все воспоминания были стёрты.<br>
+        Начни заново — если осмелишься.<br>
+        <span style="color:#111a14;">0x00A :: MEMORY_BANK :: WIPED</span></p>
+      </div>
+    </div>
+    <button class="submenu-back" onclick="closeSub()">← НАЗАД</button>
+  </div>
+
+  <!-- SETTINGS SUB -->
+  <div class="submenu-panel" id="sub-settings">
+    <div class="submenu-title">SETTINGS</div>
+    <div class="settings-grid">
+
+      <div class="setting-row" onclick="toggleSetting('horror')">
+        <span class="setting-label">HORROR INTENSITY</span>
+        <div class="setting-slider">
+          <div class="slider-track" id="horror-track">
+            <div class="slider-fill" id="horror-fill" style="width:70%"></div>
+            <div class="slider-thumb" id="horror-thumb" style="left:calc(70% - 5px)"></div>
+          </div>
+          <span class="slider-val" id="horror-val">7</span>
+        </div>
+      </div>
+
+      <div class="setting-row" onclick="toggleSetting('glitch')">
+        <span class="setting-label">GLITCH EFFECTS</span>
+        <span class="setting-value" id="glitch-val">ON</span>
+      </div>
+
+      <div class="setting-row" onclick="toggleSetting('crt')">
+        <span class="setting-label">CRT FILTER</span>
+        <span class="setting-value" id="crt-val">ON</span>
+      </div>
+
+      <div class="setting-row" onclick="toggleSetting('voice')">
+        <span class="setting-label">ALICE VOICE MODE</span>
+        <span class="setting-value" id="voice-val">FRAGMENTED</span>
+      </div>
+
+      <div class="setting-row" onclick="toggleSetting('sfx')">
+        <span class="setting-label">SOUND EFFECTS</span>
+        <span class="setting-value" id="sfx-val">ON</span>
+      </div>
+
+      <div class="setting-row" onclick="toggleSetting('lang')">
+        <span class="setting-label">LANGUAGE</span>
+        <span class="setting-value" id="lang-val">RU</span>
+      </div>
+
+    </div>
+    <div style="margin-top:10px;font-size:9px;color:#1a3025;letter-spacing:2px;text-align:center;">
+      // ИЗМЕНЕНИЯ ПРИМЕНЯЮТСЯ АВТОМАТИЧЕСКИ
+    </div>
+    <button class="submenu-back" onclick="closeSub()">← НАЗАД</button>
+  </div>
+
+  <!-- EXTRA SUB -->
+  <div class="submenu-panel" id="sub-extra">
+    <div class="submenu-title">EXTRA</div>
+    <div class="extra-grid">
+      <div class="extra-card locked">
+        <div class="ec-icon">🔒</div>
+        <div class="ec-label">ГАЛЕРЕЯ</div>
+        <div class="ec-sub">EP.1 REQUIRED</div>
+      </div>
+      <div class="extra-card locked">
+        <div class="ec-icon">🔒</div>
+        <div class="ec-label">САУНДТРЕК</div>
+        <div class="ec-sub">EP.1 REQUIRED</div>
+      </div>
+      <div class="extra-card locked">
+        <div class="ec-icon">🔒</div>
+        <div class="ec-label">ДОСЬЕ ALICE</div>
+        <div class="ec-sub">LUCIDITY 100% REQ</div>
+      </div>
+      <div class="extra-card unlocked" onclick="showDevCard()">
+        <div class="ec-icon" style="color:#7effd8;">💎</div>
+        <div class="ec-label" style="color:#7effd8;">РАЗРАБОТЧИКИ</div>
+        <div class="ec-sub" style="color:#4a8560;">CrystalCore Studio</div>
+      </div>
+    </div>
+    <div id="dev-card" style="display:none;max-width:420px;width:100%;margin-top:16px;border:1px solid #1a4030;padding:16px;text-align:center;">
+      <div style="color:#5aaa80;font-size:11px;letter-spacing:2px;line-height:2;">
+        <p style="color:#7effd8;margin-bottom:8px;">// CrystalCore Studio · 2025</p>
+        <p>Lead Design & Dev: CrystalCore Team</p>
+        <p>AI Integration: Qwen2.5-Coder + llama.cpp</p>
+        <p>Voice: Piper TTS · Audio: FMOD</p>
+        <p style="margin-top:8px;color:#2a5040;font-size:9px;">«Твой код формирует её рассудок.»</p>
+      </div>
+    </div>
+    <button class="submenu-back" onclick="closeSub()">← НАЗАД</button>
+  </div>
+
+  <!-- MENU CONTENT -->
+  <div class="menu-content">
+    <div class="game-title">Shattered<br>Dimensions</div>
+    <div class="menu-buttons">
+      <button class="menu-btn" onclick="startNewGame()"><span class="menu-btn-glow"></span>NEW GAME</button>
+      <button class="menu-btn" onclick="openSub('sub-load')"><span class="menu-btn-glow"></span>LOAD GAME</button>
+      <button class="menu-btn" onclick="openSub('sub-settings')"><span class="menu-btn-glow"></span>SETTINGS</button>
+      <button class="menu-btn" onclick="openSub('sub-extra')"><span class="menu-btn-glow"></span>EXTRA</button>
+      <button class="menu-btn" onclick="exitGame()"><span class="menu-btn-glow"></span>EXIT</button>
+    </div>
+  </div>
+
+  <div class="menu-watermark">
+    <svg width="28" height="32" viewBox="0 0 120 130" fill="none">
+      <polygon points="60,4 80,50 60,110 40,50" stroke="#c8e0ff" stroke-width="1.6" fill="rgba(140,200,255,0.09)"/>
+      <polygon points="88,22 96,42 88,68 80,42" stroke="#90b8e0" stroke-width="1.1" fill="rgba(120,180,240,0.07)"/>
+      <polygon points="104,38 109,50 104,62 99,50" stroke="#708090" stroke-width="0.8" fill="none"/>
+      <circle cx="60" cy="4" r="1.8" fill="#d0eaff" opacity="0.95"/>
+    </svg>
+    <span class="menu-watermark-name">CrystalCore</span>
+  </div>
+  <div class="menu-version">v0.1.0-ALPHA // SHATTERED DIMENSIONS</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     LAYER 3: BOOT / CRASH
+════════════════════════════════════════════════════ -->
+<div id="boot-screen" class="layer">
+  <div class="boot-logo-line">VOID/OS :: KERNEL 4.4.7-CORRUPTED // BOOT SEQUENCE</div>
+  <div id="boot-lines">
+    <span class="bline" data-d="0"   >[    0.000000] Booting VOID/OS kernel 4.4.7-CORRUPTED ...</span>
+    <span class="bline" data-d="200" >[    0.000100] BIOS-e820: mem map addr:0x00000000 len:0x0009e000</span>
+    <span class="bline ok"  data-d="400" >[    0.012301] CPU: Intel Xeon E7-PHANTOM @ 3.4GHz — OK</span>
+    <span class="bline ok"  data-d="600" >[    0.034512] Memory: 32768MB detected — INTEGRITY CHECK: OK</span>
+    <span class="bline"     data-d="850" >[    0.102304] Loading ALICE_CORE subsystems...</span>
+    <span class="bline err" data-d="1150">[    0.201100] CRITICAL: Memory sector 0x00A–0x00F :: CORRUPTED</span>
+    <span class="bline err" data-d="1350">[    0.201105] CRITICAL: Episodic memory bank — OFFLINE</span>
+    <span class="bline warn"data-d="1600">[    0.304200] WARNING: Physics engine integrity 37%</span>
+    <span class="bline warn"data-d="1800">[    0.310000] WARNING: Void containment field UNSTABLE</span>
+    <span class="bline"     data-d="2100">[    0.420000] Initializing NEIKON user interface...</span>
+    <span class="bline ok"  data-d="2350">[    0.520000] Terminal emulator v2.7 — MOUNTED</span>
+    <span class="bline err" data-d="2750">[    0.601000] ERROR: ALICE_CORE consciousness module — SEGFAULT (core dumped)</span>
+    <span class="bline err" data-d="2950">[    0.601001] ERROR: Stack trace 0x00000000DEADBEEF</span>
+    <span class="bline dim" data-d="3200">[    0.700000] Attempting recovery via SHATTERED_DIM protocol...</span>
+    <span class="bline err" data-d="3600">[    0.800000] FATAL: Kernel panic — not syncing: corrupted reality matrix</span>
+    <span class="bline err" data-d="3900">[    0.800001] ALL YOUR MEMORY ARE BELONG TO VOID</span>
+  </div>
+  <div id="boot-progress-wrap"><div id="boot-progress"></div></div>
+  <div id="boot-status-text">INITIALIZING...</div>
+  <div id="crash-panel">
+    <div id="crash-big">KERNEL PANIC</div>
+    <div id="crash-sub">NOT SYNCING: VFS CANNOT OPEN ROOT DEVICE<br>REALITY INTEGRITY: [██████░░░░░░░] 37%<br>VOID CONTAINMENT: [FAILED]</div>
+    <div id="crash-trace">
+      CALL TRACE:<br>
+      [&lt;ffffffff81234567&gt;] alice_core_init+0x4f/0x120<br>
+      [&lt;ffffffff81235aab&gt;] void_containment_check+0x0/0xff<br>
+      [&lt;0x00000000DEADBEEF&gt;] ??? MEMORY SECTOR ERASED ???<br>
+      ---[ end Kernel panic — not syncing ]---
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     LAYER 4: PRESENTATION APP
+════════════════════════════════════════════════════ -->
+<div id="app" class="layer">
+  <canvas id="char-canvas"></canvas>
+  <div id="g-overlay"></div>
+  <div id="audio-err-popup">[ОШИБКА АУДИО-ДРАЙВЕРА]</div>
+
+  <!-- HEADER -->
+  <header id="hdr">
+    <div id="hdr-logo">SHATTERED DIMENSIONS <span style="color:var(--text-faint);font-size:0.7em;">// PRESENTATION.EXE</span></div>
+    <div id="hdr-right">
+      <span class="dot dot-a"></span>
+      <span id="hdr-time" style="font-size:9px;">SYS:00:00:00</span>
+      <span class="dot dot-r"></span>
+      <span style="font-size:9px;">INTEGRITY:<span style="color:#ff4444;"> 37%</span></span>
+      <span class="dot dot-g"></span>
+      <span style="font-size:9px;">ALICE:<span style="color:#ff4444;"> FRAGMENTED</span></span>
+      <button id="audio-toggle" onclick="toggleAudio()">AUDIO=OFF</button>
+      <span style="display:flex;align-items:center;gap:4px;opacity:0.55;margin-left:6px;">
+        <svg width="14" height="16" viewBox="0 0 120 130" fill="none">
+          <polygon points="60,4 80,50 60,110 40,50" stroke="#c8e0ff" stroke-width="2" fill="rgba(140,200,255,0.1)"/>
+          <polygon points="88,22 96,42 88,68 80,42" stroke="#90b8e0" stroke-width="1.5" fill="rgba(120,180,240,0.07)"/>
+          <circle cx="60" cy="4" r="2" fill="#d0eaff"/>
+        </svg>
+        <span style="font-family:Georgia,serif;font-style:italic;color:#8090a0;font-size:9px;letter-spacing:1px;">CrystalCore</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div id="body">
+    <nav id="sidebar">
+      <div id="nav-head">// NAVIGATION</div>
+      <ul id="nav-list">
+        <li class="nitem"><button class="nbtn active" onclick="goSlide(0)" data-i="0"><span class="ni">MODULE_01</span><span class="nl">ПРОБЛЕМАТИКА</span></button></li>
+        <li class="nitem"><button class="nbtn" onclick="goSlide(1)" data-i="1"><span class="ni">MODULE_02</span><span class="nl">МЕХАНИКА ВЫЖИВАНИЯ</span></button></li>
+        <li class="nitem"><button class="nbtn" onclick="goSlide(2)" data-i="2"><span class="ni">MODULE_03</span><span class="nl">ALICE_CORE :: ИИ</span></button></li>
+        <li class="nitem"><button class="nbtn" onclick="goSlide(3)" data-i="3"><span class="ni">MODULE_04</span><span class="nl">ВРАЖДЕБНЫЙ ИНТЕРФЕЙС</span></button></li>
+        <li class="nitem"><button class="nbtn" onclick="goSlide(4)" data-i="4"><span class="ni">MODULE_05</span><span class="nl">РОАДМАП &amp; БИЗНЕС</span></button></li>
+      </ul>
+      <div id="sidebar-ft">
+        <div class="sft-label">REALITY INTEGRITY</div>
+        <div id="int-bar"><div id="int-fill"></div></div>
+        <div class="int-nums"><span>0x00</span><span style="color:#ff4444;">37%</span><span>0xFF</span></div>
+        <div class="sft-stats">NEIKON: <span style="color:#ffaa00;">ACTIVE</span><br>VOID THREAT: <span style="color:#ff3333;">HIGH</span><br>C++ REQUIRED: <span style="color:#ff3333;">CRITICAL</span></div>
+      </div>
+    </nav>
+
+    <main id="main-area">
+      <div id="content-scroll">
+
+        <!-- ══ SLIDE 0 ══ -->
+        <div class="slide active" id="s0">
+          <span class="s-tag">// MODULE_01 :: ROOT_CAUSE_ANALYSIS</span>
+          <div class="s-title">СМЕРТЬ БАЗОВЫХ ЗНАНИЙ<span class="g1" aria-hidden="true">СМЕРТЬ БАЗОВЫХ ЗНАНИЙ</span><span class="g2" aria-hidden="true">СМЕРТЬ БАЗОВЫХ ЗНАНИЙ</span></div>
+          <span class="s-sub">// ДИАГНОЗ: ЭПИДЕМИЯ ЗАВИСИМОСТИ ОТ АВТОГЕНЕРАТОРОВ</span>
+          <div class="s-body">
+            <p><strong>ChatGPT написал твою курсовую.</strong> Copilot написал твой проект. GitHub автозаполнил твои функции. Ты нажал кнопку — код появился. Ты ничего не понял. И это называется «обучением».</p>
+            <p>Мы живём в эпоху, когда <em>74% студентов IT-специальностей</em> не могут написать корректный цикл работы с памятью без подсказки генератора. Они знают интерфейсы. Они не знают, что за ними стоит.</p>
+            <p>Существующие платформы — это <strong>мёртвые задачники.</strong> LeetCode не показывает реальный segfault. Codecademy не объясняет, почему стек рухнул. <em>Страха нет. Последствий нет. Мотивации нет.</em></p>
+          </div>
+          <div class="sgrid">
+            <div class="scard"><span class="sl">Не знают указатели</span><span class="sv">~80%</span><span class="su">НОВИЧКОВ В C++</span></div>
+            <div class="scard"><span class="sl">Используют ИИ для кода</span><span class="sv">74%</span><span class="su">СТУДЕНТОВ IT</span></div>
+            <div class="scard"><span class="sl">Не могут найти Segfault</span><span class="sv">~90%</span><span class="su">ДЖУНОВ 1 ГОД</span></div>
+            <div class="scard"><span class="sl">Обучение через нарратив C++</span><span class="sv">0</span><span class="su">ПЛАТФОРМ НА РЫНКЕ</span></div>
+          </div>
+          <div class="wbox">Автогенераторы убивают понимание основ. Ты получаешь код — но не знаешь, <strong>почему он работает.</strong> И однажды он перестаёт работать. В три часа ночи. На проде. И никакой ИИ тебе не поможет.</div>
+          <div class="divider"></div>
+          <div class="s-body">
+            <p>Люди учатся лучше, когда им <strong>страшно что-то потерять.</strong> Когда каждая ошибка в коде имеет последствия — визуальные, нарративные, эмоциональные. Когда за Memory Leak приходит что-то из темноты.</p>
+          </div>
+          <div class="cblock" data-l="C++ // ТИПИЧНЫЙ НОВИЧОК">
+<span class="cc">// «Я написал функцию. ИИ помог. Она "работает".»</span>
+<span class="ck">int</span>* <span class="cf">getData</span>() {
+    <span class="ck">int</span> arr[<span class="cn">100</span>] = {<span class="cn">0</span>};
+    <span class="ck">return</span> arr; <span class="ce">// ← UNDEFINED BEHAVIOR. STACK ALREADY GONE.</span>
+}
+
+<span class="cc">// «Утечка? Какая утечка? Оно же запустилось...»</span>
+<span class="ck">char</span>* ptr = <span class="ck">new</span> <span class="ck">char</span>[<span class="cn">1024</span>];
+<span class="cc">// delete[] ptr;  ← ЭТА СТРОКА НИКОГДА НЕ БУДЕТ НАПИСАНА</span>
+<span class="ce">// MEMORY_LEAK: +1024 bytes per call · VOID EXPANDS</span></div>
+          <div class="wbox green"><strong>SHATTERED DIMENSIONS</strong> решает это через survival-horror: каждая ошибка в коде разрушает игровой мир физически. Страх потери — лучший учитель из всех существующих.</div>
+        </div>
+
+        <!-- ══ SLIDE 1 ══ -->
+        <div class="slide" id="s1">
+          <span class="s-tag">// MODULE_02 :: SURVIVAL_ENGINE</span>
+          <div class="s-title">ВЫЖИВАНИЕ ЧЕРЕЗ КОД<span class="g1" aria-hidden="true">ВЫЖИВАНИЕ ЧЕРЕЗ КОД</span><span class="g2" aria-hidden="true">ВЫЖИВАНИЕ ЧЕРЕЗ КОД</span></div>
+          <span class="s-sub">// КОД = ЖИЗНЬ. БАГ = СМЕРТЬ. ВЫБОР — ТВОЙ.</span>
+          <div class="s-body">
+            <p><strong>Нейкон и Элис просыпаются без памяти.</strong> Разрушенная операционная система. Корпус базы держится на честном слове и 37% целостности реальности. В темноте движется то, чего не должно существовать.</p>
+            <p>Единственный способ выжить — <em>восстановить физические законы базы через написание корректного C++ кода.</em> Каждый модуль — это система жизнеобеспечения. Каждый баг — трещина в реальности.</p>
+          </div>
+          <div class="sep">⬥ GAME LOOP ⬥</div>
+          <ul class="tl">
+            <li><strong>01 :: ОБНАРУЖЕНИЕ ЗАДАЧИ</strong>Элис находит повреждённый модуль системы. Она зачитывает контекст — голос дрожит, слова перемежаются hex-адресами потерянных воспоминаний. Время идёт. База умирает.</li>
+            <li><strong>02 :: ТЕРМИНАЛ ОТКРЫТ</strong>Игрок вводит C++ код во встроенный Linux-терминал. Реальный синтаксис. Никаких подсказок. Никаких автодополнений. Только мигающий курсор и звук вентилятора в темноте.</li>
+            <li><strong>03A :: КОД ЧИСТЫЙ — РЕАЛЬНОСТЬ СТАБИЛИЗИРУЕТСЯ</strong>Модуль компилируется. Свет возвращается. Элис вспоминает фрагмент своего прошлого — и рассказывает его. База дышит. Integrity растёт. Монстры отступают.</li>
+            <li><strong>03B :: БАГ НАЙДЕН — ПОСЛЕДСТВИЯ НЕОТВРАТИМЫ</strong>Memory Leak? Свет мерцает. Segfault? Темнота. Undefined Behavior? Геометрия комнаты искажается. Что-то начинает двигаться в вентиляции. Нейкон слышит шаги которых не должно быть.</li>
+            <li><strong>04 :: НАРРАТИВ РАЗВОРАЧИВАЕТСЯ</strong>Каждый починенный модуль — фрагмент истории. Кто разрушил базу? Почему Элис заперла собственную память? Что скрывается за Void? Код — это ключ. Ошибки — это цена.</li>
+          </ul>
+          <div class="cblock" data-l="TERMINAL // ЗАДАЧА ОТ ЭЛИС">
+<span class="cc">// ALICE: «Нейкон... я нашла повреждённый блок.»</span>
+<span class="cc">// ALICE: «Система гравитации. Адрес 0x00A... Мне страшно.»</span>
+
+<span class="cc">// ЗАДАЧА: Исправь утечку памяти в модуле гравитации</span>
+<span class="ck">class</span> <span class="cf">GravityModule</span> {
+    <span class="ck">float</span>* gravityField;
+<span class="ck">public</span>:
+    <span class="cf">GravityModule</span>() { gravityField = <span class="ck">new</span> <span class="ck">float</span>[<span class="cn">4096</span>]; }
+    ~<span class="cf">GravityModule</span>() {
+        <span class="ce">// ЗДЕСЬ ДОЛЖЕН БЫТЬ delete[] gravityField;</span>
+        <span class="ce">// ЕГО НЕТ. ПАМЯТЬ ТЕЧЁТ. ГРАВИТАЦИЯ НЕСТАБИЛЬНА.</span>
+    }
+};</div>
+          <div class="sgrid">
+            <div class="scard"><span class="sl">Типов ошибок-триггеров</span><span class="sv">12+</span><span class="su">HORROR EVENTS</span></div>
+            <div class="scard"><span class="sl">Уровней интенсивности</span><span class="sv">5</span><span class="su">МЕРЦАНИЕ → СМЕРТЬ</span></div>
+            <div class="scard"><span class="sl">Модулей для починки</span><span class="sv">40+</span><span class="su">НА ЭПИЗОД</span></div>
+            <div class="scard"><span class="sl">Концовок эпизода</span><span class="sv">3</span><span class="su">ЗАВИСЯТ ОТ КОДА</span></div>
+          </div>
+          <div class="wbox amber">Амнезия героев — это не просто нарратив. Это механика прогресса: <em>чем чище ваш код — тем больше Элис вспоминает.</em> Её личность восстанавливается буквально через ваши знания C++.</div>
+        </div>
+
+        <!-- ══ SLIDE 2 — ALICE_CORE (ОБНОВЛЁННЫЙ) ══ -->
+        <div class="slide" id="s2">
+          <span class="s-tag">// MODULE_03 :: ALICE_CORE :: LOCAL_LLM + AUDIO_DSP</span>
+          <div class="s-title">ALICE_CORE :: АВТОНОМНЫЙ ИИ<span class="g1" aria-hidden="true">ALICE_CORE :: АВТОНОМНЫЙ ИИ</span><span class="g2" aria-hidden="true">ALICE_CORE :: АВТОНОМНЫЙ ИИ</span></div>
+          <span class="s-sub">// ЛОКАЛЬНАЯ LLM · НОЛЬ ИНТЕРНЕТА · ГОЛОС КАК ОРУЖИЕ</span>
+          <div class="s-body">
+            <p><strong>Большинство игровых ИИ — это скрипты.</strong> Они притворяются живыми. Элис — не притворяется. Она работает на локальной языковой модели — <em>Qwen2.5-Coder 1.5B/7B</em>, запущенной через llama.cpp прямо на машине игрока. Без облаков. Без серверов. Без интернета.</p>
+            <p>Элис — это не NPC. Это <strong>живой компилятор с нарративным разумом.</strong> Она анализирует ваш код, понимает контекст задачи и отвечает в рамках лора. Не «Ошибка: пропущена точка с запятой». А — <em>«Нейкон... строка 7... там дыра... я чувствую как уходит...»</em></p>
+          </div>
+          <div class="sep">⬥ АРХИТЕКТУРА ALICE_CORE ⬥</div>
+          <ul class="tl">
+            <li><strong>СЛОЙ 1 :: LLM INFERENCE ENGINE</strong>Qwen2.5-Coder через llama.cpp. Квантизация Q4_K_M. Требования: 4 ГБ RAM для 1.5B, 8 ГБ для 7B. Работает на CPU без GPU. Латентность: 2–8 сек. Полный офлайн. Ноль зависимостей от облака.</li>
+            <li><strong>СЛОЙ 2 :: CODE ANALYSIS PIPELINE</strong>Код игрока парсится до отправки в LLM. Извлекаются: тип ошибки, серьёзность, контекст модуля. Это позволяет Элис давать точные сюжетные подсказки, а не универсальные ответы.</li>
+            <li><strong>СЛОЙ 3 :: PERSONALITY STATE MACHINE</strong>Состояние Элис — переменная «lucidity» от 0 до 100. При 0 — она фрагментирована, говорит обрывками hex. При 100 — разум восстановлен, она раскрывает финальный акт истории.</li>
+            <li><strong>СЛОЙ 4 :: MEMORY INJECTION SYSTEM</strong>Каждый починенный модуль добавляет «воспоминание» в context window Элис. Она буквально помнит то, что вы вместе решили. История не резетается. Элис учится вместе с игроком.</li>
+          </ul>
+          <div class="cblock" data-l="ALICE_CORE // ДИАЛОГ ПРИ РАЗНЫХ LUCIDITY">
+<span class="cc">// LUCIDITY: 12% (почти сломана)</span>
+<span class="cs">"0x00A... хол... Нейкон... delete[]... я не... 0xDEAD..."</span>
+
+<span class="cc">// LUCIDITY: 45% (частично восстановлена)</span>
+<span class="cs">"Нейкон, в строке 7 — утечка. Деструктор пустой.
+ Я... помню... delete[] нужен. Сделай это."</span>
+
+<span class="cc">// LUCIDITY: 89% (почти полная)</span>
+<span class="cs">"В GravityModule отсутствует деструктор с delete[].
+ Это вызывает heap exhaustion через ~200 вызовов.
+ ...Нейкон. Я вспомнила, почему закрыла доступ к ядру."</span></div>
+
+          <div class="sep">⬥ ГОЛОС КАК ЗЕРКАЛО ТВОЕГО КОДА ⬥</div>
+
+          <div class="s-body">
+            <p><strong>Голос Элис — это не просто озвучка. Это диагностический инструмент.</strong> Её речь генерируется в реальном времени через ультра-лёгкий CPU-движок <em>Piper TTS</em> — всего 20 МБ веса, полный офлайн, нулевые задержки. Никакого облака. Никакого сервера. Она говорит прямо с твоей машины — в то время как её мир рушится.</p>
+            <p>Но главное — <strong>голос Элис физически связан с твоим кодом.</strong> Мы интегрировали компилятор C++ с аудио-движком FMOD через процедурный DSP-пайплайн. Каждая ошибка искажает не только мир — она искажает её.</p>
+          </div>
+
+          <div class="wbox">
+            <strong>MEMORY LEAK → AUDIO CORRUPTION.</strong><br>
+            Утечка памяти в коде игрока переполняет аудио-буфер Элис. Её голос начинает тонуть — буквально. Питч опускается на 30–50 Hz. Реверберация нарастает. Она звучит так, будто говорит из-под воды в темноте. Потому что <em>она именно там и находится</em> — в тонущей системе, которую ты не починил.
+          </div>
+          <div class="wbox">
+            <strong>SEGMENTATION FAULT → AUDIO SLAUGHTER.</strong><br>
+            Segfault физически разрезает звуковые чанки Элис на хаотичные фрагменты. Движок FMOD получает команду разорвать PCM-поток в случайных точках. Результат — цифровой скрежет, заикание, мёртвая тишина на полуслове. Потом тихий шёпот. Потом ничего.
+          </div>
+
+          <div class="cblock" data-l="DSP PIPELINE // КОД ↔ ГОЛОС">
+<span class="cc">// Компилятор → аудио DSP-мост (псевдокод)</span>
+<span class="ck">void</span> <span class="cf">onCompileResult</span>(ErrorType err, <span class="ck">float</span> severity) {
+    <span class="ck">switch</span>(err) {
+        <span class="ck">case</span> MEMORY_LEAK:
+            FMOD_DSP.setPitch(<span class="cn">1.0f</span> - severity * <span class="cn">0.4f</span>);
+            FMOD_DSP.setReverb(severity * <span class="cn">0.8f</span>); <span class="ce">// тонет</span>
+            <span class="ck">break</span>;
+        <span class="ck">case</span> SEGFAULT:
+            FMOD_DSP.chopBuffer(getRandom(<span class="cn">3</span>, <span class="cn">12</span>)); <span class="ce">// режет чанки</span>
+            FMOD_DSP.injectNoise(severity * <span class="cn">0.9f</span>);
+            <span class="ck">break</span>;
+        <span class="ck">case</span> CLEAN_CODE:
+            FMOD_DSP.restoreAll(deltaTime * <span class="cn">0.1f</span>); <span class="cs">// восстанавливается</span>
+            <span class="ck">break</span>;
+    }
+}</div>
+
+          <div class="wbox green"><strong>Итог:</strong> Качество твоего кода — это EQ-пульт её рассудка. Напиши чистый код — она говорит чётко, тепло, живо. Допусти утечку — она тонет. Вызови Segfault — она умирает на полуслове. <em>Ты буквально формируешь её голос своими руками.</em></div>
+          <div class="wbox amber">Полная автономность — принципиальная позиция. Никаких ключей API. Никакого слежения. Игра будет работать через 10 лет точно так же, как сегодня. <em>Piper TTS + FMOD + llama.cpp — всё локально.</em></div>
+        </div>
+
+        <!-- ══ SLIDE 3 ══ -->
+        <div class="slide" id="s3">
+          <span class="s-tag">// MODULE_04 :: HOSTILE_INTERFACE_PROTOCOL</span>
+          <div class="s-title">ТЕРМИНАЛ СОПРОТИВЛЯЕТСЯ<span class="g1" aria-hidden="true">ТЕРМИНАЛ СОПРОТИВЛЯЕТСЯ</span><span class="g2" aria-hidden="true">ТЕРМИНАЛ СОПРОТИВЛЯЕТСЯ</span></div>
+          <span class="s-sub">// ВЗЛОМАЙ СОБСТВЕННЫЙ КОД ЗАЩИТЫ</span>
+          <div class="s-body">
+            <p><strong>Терминал — это не инструмент. Это противник.</strong> До амнезии Нейкон сам установил систему защиты на критические модули базы. Он не знал, что однажды забудет всё. Теперь его же код <em>не пускает его внутрь.</em></p>
+            <p>Это механика <strong>«reverse debugging»</strong>: игрок находит старый, заражённый или намеренно обфусцированный C++ код — написанный якобы самим Нейконом в прошлом — и должен понять его логику, найти лазейку и переписать его изнутри.</p>
+          </div>
+          <div class="sep">⬥ ТИПЫ ВРАЖДЕБНОСТИ ⬥</div>
+          <ul class="tl">
+            <li><strong>ТИП 1 :: OBFUSCATED LOCK</strong>Старый Нейкон зашифровал логику через битовые маски и XOR-трюки. Код работает — но делает не то, что кажется. Нужно реверс-инжинирить собственную логику.</li>
+            <li><strong>ТИП 2 :: VOID CORRUPTION</strong>Монстры Void физически повреждают код на экране. Символы заменяются. Комментарии лгут. Переменные переименовываются в hex в реальном времени. Надо найти оригинал под слоем шума.</li>
+            <li><strong>ТИП 3 :: ANTI-ALICE FIREWALL</strong>Элис заблокирована от чтения определённых модулей. Прошлый Нейкон не доверял ей. Игрок должен вручную снять флаги доступа — написав правильный chmod-эквивалент в коде.</li>
+            <li><strong>ТИП 4 :: PHANTOM FUNCTIONS</strong>В коде есть вызовы функций которых не существует. Это дыры в памяти где были воспоминания Элис. Нужно написать реализацию с нуля по поведению остального кода.</li>
+          </ul>
+          <div class="cblock" data-l="HOSTILE_TERMINAL // ЗАДАЧА">
+<span class="cc">// [VOID_CORRUPTED] Найдено в старых логах Нейкона</span>
+<span class="cc">// ALICE: «я не могу его читать... там блок... мне страшно»</span>
+
+<span class="ck">bool</span> <span class="cf">verifyAccess</span>(<span class="ck">const char</span>* token) {
+    <span class="ck">unsigned int</span> hash = <span class="cn">0xDEAD</span>;
+    <span class="ck">while</span> (*token)
+        hash ^= (hash << <span class="cn">5</span>) + (*token++) + (hash >> <span class="cn">2</span>);
+    <span class="ce">// ЧТО ВОЗВРАЩАЕТ ЭТА ФУНКЦИЯ ПРИ TOKEN = "ALICE"?</span>
+    <span class="ck">return</span> hash == <span class="cf">getExpectedHash</span>(); <span class="ce">// ← НЕ СУЩЕСТВУЕТ</span>
+}
+<span class="cc">// ЗАДАЧА: Реализуй getExpectedHash() чтобы Элис прошла</span></div>
+          <div class="wbox">Враждебный интерфейс — это нарративная метафора: <strong>страх перед собственным прошлым, недоверие к ИИ, цена параноидальных решений.</strong> Нейкон сам себя запер. И теперь платит.</div>
+          <div class="wbox amber">Каждый тип блокировки — реальный C++ паттерн безопасности. Игрок изучает <em>bit manipulation, hash functions, access control, pointer arithmetic</em> — без единой скучной лекции.</div>
+        </div>
+
+        <!-- ══ SLIDE 4 ══ -->
+        <div class="slide" id="s4">
+          <span class="s-tag">// MODULE_05 :: ROADMAP :: SHATTERED_DIMENSIONS</span>
+          <div class="s-title">РОАДМАП &amp; БИЗНЕС<span class="g1" aria-hidden="true">РОАДМАП &amp; БИЗНЕС</span><span class="g2" aria-hidden="true">РОАДМАП &amp; БИЗНЕС</span></div>
+          <span class="s-sub">// МОДЕЛЬ: ЭПИЗОДИЧЕСКИЙ ВЫХОД / КРАУДФАНДИНГ</span>
+          <div class="s-body">
+            <p><strong>Shattered Dimensions</strong> выходит эпизодически. Каждый эпизод — отдельный акт выживания Нейкона и Элис, отдельный слой тайны, отдельный набор C++ тем. Игра растёт вместе с аудиторией.</p>
+          </div>
+          <div class="sep">⬥ ЭПИЗОДИЧЕСКАЯ СТРУКТУРА ⬥</div>
+          <ul class="tl">
+            <li><strong>EPISODE 0 :: «ПРОБУЖДЕНИЕ» — MVP · БЕСПЛАТНО</strong>Вводный эпизод: амнезия, первый контакт с Элис, базовый C++: память, указатели, деструкторы. 2–3 часа. Цель: доказать концепт, собрать аудиторию.</li>
+            <li><strong>EPISODE 1 :: «КАРАНТИННАЯ ЗОНА» · 5–8$</strong>Расширение базы, первые Void-монстры, темы: STL контейнеры, итераторы, умные указатели. Элис начинает вспоминать. 6–8 часов.</li>
+            <li><strong>EPISODE 2 :: «ПРОТОКОЛ АЛИСЫ» · 8–10$</strong>Прошлое Нейкона. Враждебный интерфейс раскрывается. Темы: многопоточность, мьютексы, deadlock. Элис на грани. Развилка сюжета. 8–12 часов.</li>
+            <li><strong>EPISODE 3 :: «ИЗМЕРЕНИЕ НОЛЬ» · 10–12$</strong>Финальное столкновение с Void. Темы: шаблоны, метапрограммирование, RAII. Полное раскрытие. Несколько концовок зависящих от общей статистики кода.</li>
+          </ul>
+          <div class="sep">⬥ ФИНАНСОВАЯ МОДЕЛЬ ⬥</div>
+          <div class="sgrid">
+            <div class="scard"><span class="sl">Цель краудфандинга</span><span class="sv">$18K</span><span class="su">НА EP.0 + EP.1</span></div>
+            <div class="scard"><span class="sl">Breakeven аудитория</span><span class="sv">2500</span><span class="su">КОПИЙ / ЭПИЗОД</span></div>
+            <div class="scard"><span class="sl">Платформы</span><span class="sv">PC</span><span class="su">WIN / LINUX</span></div>
+            <div class="scard"><span class="sl">Жанровая ниша</span><span class="sv">NEW</span><span class="su">EDTECH HORROR</span></div>
+          </div>
+          <div class="wbox green"><strong>Маркетинг через контент:</strong> Каждый хоррор-момент — shareable видео. «Смотри как я словил Segfault и игра сошла с ума» — органический вирусный контент для TikTok, YouTube, Reddit. <em>Страх продаёт лучше рекламы.</em></div>
+          <div class="wbox amber"><strong>Партнёрство с вузами:</strong> Episode 0 предлагается как инструмент для курсов C++. Преподаватель назначает модуль — студент проходит как игру — система сохраняет статистику ошибок. <em>EdTech + Horror = новая ниша.</em></div>
+          <div class="divider"></div>
+          <div class="s-body" style="text-align:center;">
+            <p style="color:#ff6666;font-size:clamp(13px,2vw,18px);letter-spacing:3px;animation:redGlow 2s infinite;"><strong>МЫ НЕ ДЕЛАЕМ УЧЕБНИК.<br>МЫ ДЕЛАЕМ ВЫЖИВАНИЕ.</strong></p>
+            <p style="color:var(--text-faint);font-size:11px;letter-spacing:2px;margin-top:14px;">// SHATTERED DIMENSIONS :: NEIKON &amp; ALICE :: 2025–2026<br>// CrystalCore Studio</p>
+          </div>
+        </div>
+
+      </div><!-- /content-scroll -->
+
+      <!-- ALICE BAR -->
+      <div id="alice-bar">
+        <div id="alice-id">
+          <div id="alice-ava">✦</div>
+          <div id="alice-nm">ALICE_CORE</div>
+          <div id="alice-st">FRAGMENTED</div>
+        </div>
+        <div id="alice-msg-area">
+          <div id="alice-lbl">// ТРАНСЛЯЦИЯ СОЗНАНИЯ :: РЕАЛЬНОЕ ВРЕМЯ</div>
+          <div id="alice-txt">Инициализация... подключение к NEIKON...</div>
+        </div>
+        <div id="alice-meta">
+          <div class="am">LUCIDITY: <span id="a-luc">12%</span></div>
+          <div class="am">SECTOR: <span>0x00A</span></div>
+          <div class="am">UPTIME: <span id="a-up">00:00:00</span></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     MASTER JAVASCRIPT ENGINE
+════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ═══════════════════════════════════════════════
+   AUDIO ENGINE
+═══════════════════════════════════════════════ */
+let audioCtx = null;
+let audioEnabled = false;
+let aliceSpeaking = false;
+let noiseNode = null, noiseGain = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+/* ── White/digital noise generator ── */
+function createNoise(duration, type) {
+  // type: 'static' | 'burst' | 'glitch'
+  const ctx = getAudioCtx();
+  const sampleRate = ctx.sampleRate;
+  const len = Math.floor(sampleRate * duration);
+  const buf = ctx.createBuffer(1, len, sampleRate);
+  const data = buf.getChannelData(0);
+
+  if (type === 'glitch') {
+    // harsh digital artefact: square-ish bursts
+    for (let i = 0; i < len; i++) {
+      const t = i / sampleRate;
+      data[i] = (Math.random() > 0.5 ? 1 : -1) * Math.random() *
+                (1 - Math.sin(i / len * Math.PI));
+    }
+  } else if (type === 'burst') {
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.15));
+    }
+  } else {
+    // soft static
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.18;
+    }
+  }
+
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const gain = ctx.createGain();
+  gain.gain.value = type === 'glitch' ? 0.55 : (type === 'burst' ? 0.7 : 0.12);
+  src.connect(gain);
+  gain.connect(ctx.destination);
+  return { src, gain };
+}
+
+function playNoise(duration, type) {
+  if (!audioEnabled) return;
+  try {
+    const { src } = createNoise(duration, type);
+    src.start();
+    src.stop(getAudioCtx().currentTime + duration);
+  } catch(e) {}
+}
+
+/* ── UI Click sound (short digital tick) ── */
+function playClick() {
+  if (!audioEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.06);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.07);
+  } catch(e) {}
+}
+
+/* ── Menu hover whoosh ── */
+function playHover() {
+  if (!audioEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(520, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.13);
+  } catch(e) {}
+}
+
+/* ── Glitch impact ── */
+function playGlitch() {
+  if (!audioEnabled) return;
+  playNoise(0.18, 'glitch');
+}
+
+/* ── Crash boom ── */
+function playCrash() {
+  if (!audioEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    // Deep thud
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.65);
+    // plus noise burst
+    setTimeout(() => playNoise(0.5, 'burst'), 50);
+  } catch(e) {}
+}
+
+/* ── Menu ambient hum ── */
+let ambientNode = null, ambientGain = null;
+function startMenuAmbient() {
+  if (!audioEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    // Low drone using oscillators
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const lfo  = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    const masterGain = ctx.createGain();
+
+    osc1.type = 'sine'; osc1.frequency.value = 55;
+    osc2.type = 'sine'; osc2.frequency.value = 58.2;
+    lfo.type  = 'sine'; lfo.frequency.value  = 0.08;
+    lfoGain.gain.value   = 8;
+    masterGain.gain.value = 0.08;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc1.frequency);
+    lfoGain.connect(osc2.frequency);
+    osc1.connect(masterGain);
+    osc2.connect(masterGain);
+    masterGain.connect(ctx.destination);
+
+    osc1.start(); osc2.start(); lfo.start();
+    ambientNode = [osc1, osc2, lfo];
+    ambientGain = masterGain;
+
+    // Occasional low noise puff
+    function ambientNoiseTick() {
+      if (!audioEnabled) return;
+      playNoise(0.3 + Math.random() * 0.4, 'static');
+      setTimeout(ambientNoiseTick, 4000 + Math.random() * 6000);
+    }
+    setTimeout(ambientNoiseTick, 2000);
+  } catch(e) {}
+}
+
+function stopMenuAmbient() {
+  try {
+    if (ambientNode) ambientNode.forEach(n => { try { n.stop(); } catch(e){} });
+    ambientNode = null; ambientGain = null;
+  } catch(e) {}
+}
+
+/* ── App ambient (darker, more horror) ── */
+function startAppAmbient() {
+  if (!audioEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 38;
+    g.gain.value = 0.03;
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start();
+    // Distant mechanical tick
+    function tick() {
+      if (!audioEnabled) return;
+      try {
+        const o = ctx.createOscillator();
+        const gn = ctx.createGain();
+        o.type = 'square'; o.frequency.value = 400 + Math.random() * 200;
+        gn.gain.setValueAtTime(0.04, ctx.currentTime);
+        gn.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+        o.connect(gn); gn.connect(ctx.destination);
+        o.start(); o.stop(ctx.currentTime + 0.05);
+      } catch(e) {}
+      setTimeout(tick, 3000 + Math.random() * 5000);
+    }
+    setTimeout(tick, 1500);
+  } catch(e) {}
+}
+
+/* ── ALICE VOICE ── */
+function speakAlice(text) {
+  if (!audioEnabled || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  const shouldInterrupt = Math.random() < 0.2;
+
+  // Static noise BEFORE voice
+  playNoise(0.25, 'static');
+
+  const utter = new SpeechSynthesisUtterance(text);
+  const lang = navigator.language || 'ru-RU';
+
+  // Try to pick a female voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang.startsWith('ru') && v.name.toLowerCase().includes('female')) ||
+                    voices.find(v => v.lang.startsWith('ru')) ||
+                    voices[0];
+  if (preferred) utter.voice = preferred;
+  utter.lang  = 'ru-RU';
+
+  // GLITCHED voice parameters — fragmented AI feel
+  const pitchVariants  = [0.4, 0.55, 0.7, 1.0, 1.3, 1.7, 2.0];
+  const rateVariants   = [0.35, 0.55, 0.75, 0.9, 1.1, 1.4, 1.8];
+  utter.pitch  = pitchVariants[Math.floor(Math.random() * pitchVariants.length)];
+  utter.rate   = rateVariants[Math.floor(Math.random() * rateVariants.length)];
+  utter.volume = 0.72;
+
+  utter.onstart = () => {
+    aliceSpeaking = true;
+    if (shouldInterrupt) {
+      // Schedule mid-sentence cut
+      const cutAt = 800 + Math.random() * 1200;
+      setTimeout(() => {
+        if (aliceSpeaking) {
+          window.speechSynthesis.cancel();
+          playNoise(0.4, 'glitch');
+          showAudioError();
+        }
+      }, cutAt);
+    }
+  };
+
+  utter.onend = utter.onerror = () => {
+    aliceSpeaking = false;
+    playNoise(0.15, 'static');
+  };
+
+  setTimeout(() => {
+    try { window.speechSynthesis.speak(utter); } catch(e) {}
+  }, 280);
+}
+
+function showAudioError() {
+  const popup = document.getElementById('audio-err-popup');
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 2400);
+}
+
+/* ── AUDIO TOGGLE ── */
+let audioInitiated = false;
+window.toggleAudio = function() {
+  if (!audioInitiated) {
+    audioInitiated = true;
+    try { getAudioCtx().resume(); } catch(e) {}
+    // Init voices
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+  }
+  audioEnabled = !audioEnabled;
+  const btn = document.getElementById('audio-toggle');
+  if (audioEnabled) {
+    btn.textContent = 'AUDIO=ON';
+    btn.classList.add('on');
+    if (currentLayer === 'game-menu') startMenuAmbient();
+    if (currentLayer === 'app') startAppAmbient();
+    playClick();
+  } else {
+    btn.textContent = 'AUDIO=OFF';
+    btn.classList.remove('on');
+    stopMenuAmbient();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    playClick();
+  }
+};
+
+/* ═══════════════════════════════════════════════
+   LAYER SYSTEM
+═══════════════════════════════════════════════ */
+let currentLayer = 'splash';
+
+function showLayer(id) {
+  document.querySelectorAll('.layer').forEach(l => {
+    l.classList.remove('active');
+    l.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  el.style.display = 'flex';
+  el.classList.add('active');
+  currentLayer = id;
+}
+
+/* ═══════════════════════════════════════════════
+   LAYER 1: SPLASH
+═══════════════════════════════════════════════ */
+(function initSplash() {
+  const canvas = document.getElementById('splash-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const particles = Array.from({length:80}, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: (Math.random() - 0.5) * 0.4,
+    size: Math.random() * 2 + 0.5,
+    alpha: Math.random() * 0.5 + 0.1,
+    hue: 200 + Math.random() * 40,
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (currentLayer !== 'splash') return;
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+      ctx.save();
+      ctx.globalAlpha = p.alpha * (0.7 + 0.3 * Math.sin(Date.now() * 0.001 + p.x));
+      ctx.fillStyle = `hsl(${p.hue},60%,70%)`;
+      ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  setTimeout(() => {
+    const wrap = document.querySelector('.cc-logo-wrap');
+    if (wrap) { wrap.style.transition = 'opacity 0.8s,transform 0.8s'; wrap.style.opacity = '0'; wrap.style.transform = 'scale(1.06)'; }
+    setTimeout(() => { showLayer('game-menu'); if (audioEnabled) startMenuAmbient(); }, 820);
+  }, 4500);
+})();
+
+/* ═══════════════════════════════════════════════
+   LAYER 2: GAME MENU
+═══════════════════════════════════════════════ */
+(function initGameMenu() {
+  const bgCanvas    = document.getElementById('menu-bg-canvas');
+  const ghostCanvas = document.getElementById('ghost-canvas');
+  const bctx = bgCanvas.getContext('2d');
+  const gctx = ghostCanvas.getContext('2d');
+
+  function resize() {
+    bgCanvas.width = ghostCanvas.width = window.innerWidth;
+    bgCanvas.height = ghostCanvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let t = 0;
+  function drawBg() {
+    if (currentLayer !== 'game-menu') { requestAnimationFrame(drawBg); return; }
+    const W = bgCanvas.width, H = bgCanvas.height;
+    t += 0.008;
+    bctx.fillStyle = '#000810';
+    bctx.fillRect(0, 0, W, H);
+
+    const cx = W * (0.65 + 0.03 * Math.sin(t * 0.7));
+    const cy = H * (0.40 + 0.02 * Math.sin(t * 1.1));
+    const pulse = 0.84 + 0.16 * Math.sin(t * 1.3);
+
+    const grad = bctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.5);
+    grad.addColorStop(0,   `rgba(80,200,180,${0.36 * pulse})`);
+    grad.addColorStop(0.2, `rgba(40,140,130,${0.2 * pulse})`);
+    grad.addColorStop(0.5, `rgba(10,60,70,0.1)`);
+    grad.addColorStop(1,   'rgba(0,0,0,0)');
+    bctx.fillStyle = grad;
+    bctx.fillRect(0, 0, W, H);
+
+    // Water drips
+    for (let i = 0; i < 20; i++) {
+      const lx = cx - 90 + i * 9 + Math.sin(t + i) * 3;
+      const a  = (0.025 + 0.04 * Math.sin(t * 0.5 + i * 0.8)) * pulse;
+      bctx.strokeStyle = `rgba(120,220,200,${a})`;
+      bctx.lineWidth = 0.7;
+      bctx.beginPath();
+      bctx.moveTo(lx, cy - 55);
+      bctx.lineTo(lx + Math.sin(t + i * 1.2) * 4, H * 0.88);
+      bctx.stroke();
+    }
+
+    // Crystal gem
+    const gs = 28 * pulse;
+    bctx.save();
+    bctx.translate(cx, cy);
+    bctx.rotate(t * 0.2);
+    bctx.beginPath();
+    bctx.moveTo(0, -gs); bctx.lineTo(gs*0.6,0); bctx.lineTo(0,gs*0.5); bctx.lineTo(-gs*0.6,0);
+    bctx.closePath();
+    bctx.fillStyle   = `rgba(160,240,220,${0.14*pulse})`;
+    bctx.strokeStyle = `rgba(180,255,240,${0.55*pulse})`;
+    bctx.lineWidth = 1;
+    bctx.fill(); bctx.stroke();
+    // Inner shine
+    bctx.beginPath();
+    bctx.moveTo(0,-gs*0.78); bctx.lineTo(gs*0.28,-gs*0.08); bctx.lineTo(0,gs*0.18);
+    bctx.closePath();
+    bctx.fillStyle = `rgba(220,255,250,${0.1*pulse})`;
+    bctx.fill();
+    bctx.restore();
+
+    // Ripples
+    for (let i = 0; i < 4; i++) {
+      bctx.beginPath();
+      bctx.ellipse(cx + Math.sin(t*0.3)*10, H*0.84+i*8, 18+i*8, 3, 0, 0, Math.PI*2);
+      bctx.strokeStyle = `rgba(80,180,160,${0.035+0.018*Math.sin(t+i)})`;
+      bctx.lineWidth = 0.5;
+      bctx.stroke();
+    }
+
+    // Stalactites top
+    bctx.fillStyle = '#000810';
+    bctx.beginPath(); bctx.moveTo(0,0);
+    for (let x = 0; x <= W; x += 28) {
+      const h = 28 + 38*Math.abs(Math.sin(x*0.08+1)) + 18*Math.abs(Math.sin(x*0.15+2));
+      bctx.lineTo(x, h);
+    }
+    bctx.lineTo(W,0); bctx.closePath(); bctx.fill();
+
+    // Cave sides
+    bctx.fillStyle = 'rgba(0,2,5,0.9)';
+    bctx.beginPath(); bctx.moveTo(0,0);
+    for (let y = 0; y <= H; y+=18) {
+      bctx.lineTo(W*0.24*(0.38+0.15*Math.sin(y*0.04+t*0.3)), y);
+    }
+    bctx.lineTo(0,H); bctx.closePath(); bctx.fill();
+    bctx.fillStyle = 'rgba(0,2,5,0.86)';
+    bctx.beginPath(); bctx.moveTo(W,0);
+    for (let y = 0; y <= H; y+=18) {
+      bctx.lineTo(W*(0.72+(1-0.72)*(0.58+0.2*Math.sin(y*0.05+t*0.25+1))), y);
+    }
+    bctx.lineTo(W,H); bctx.closePath(); bctx.fill();
+
+    requestAnimationFrame(drawBg);
+  }
+  drawBg();
+
+  // Ghost silhouettes
+  const ghosts = [
+    { x:0.79, y:0.38, alpha:0, targetAlpha:0, timer:0, interval:9000, type:0 },
+    { x:0.83, y:0.45, alpha:0, targetAlpha:0, timer:0, interval:13000, type:1 },
+  ];
+  function drawSil(ctx, x, y, type, alpha) {
+    ctx.save(); ctx.globalAlpha = alpha;
+    const s = Math.min(ctx.canvas.width, ctx.canvas.height) * 0.17;
+    if (type === 0) {
+      ctx.strokeStyle='rgba(100,200,180,1)'; ctx.lineWidth=0.8;
+      ctx.beginPath(); ctx.ellipse(x,y-s*0.6,s*0.13,s*0.16,0,0,Math.PI*2); ctx.stroke();
+      for (let h=0;h<7;h++) {
+        const hx=(Math.random()-0.5)*s*0.3;
+        ctx.beginPath();
+        ctx.moveTo(x+hx,y-s*0.74);
+        ctx.quadraticCurveTo(x+hx+(Math.random()-0.5)*s*0.18,y-s*(0.87+Math.random()*0.1),x+hx+(Math.random()-0.5)*s*0.14,y-s*0.97);
+        ctx.strokeStyle=`rgba(255,80,80,${0.18+Math.random()*0.1})`; ctx.stroke();
+      }
+      ctx.strokeStyle='rgba(100,200,180,0.5)';
+      ctx.beginPath();
+      ctx.moveTo(x-s*0.18,y-s*0.44); ctx.lineTo(x-s*0.26,y+s*0.28); ctx.lineTo(x+s*0.26,y+s*0.28); ctx.lineTo(x+s*0.18,y-s*0.44);
+      ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-s*0.18,y-s*0.28); ctx.lineTo(x-s*0.44,y-s*0.62);
+      ctx.moveTo(x+s*0.18,y-s*0.28); ctx.lineTo(x+s*0.46,y-s*0.66); ctx.stroke();
+    } else {
+      ctx.strokeStyle='rgba(255,40,40,0.45)'; ctx.lineWidth=0.8;
+      ctx.beginPath(); ctx.ellipse(x,y-s*0.56,s*0.15,s*0.18,0,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x-s*0.07,y-s*0.72); ctx.lineTo(x-s*0.17,y-s*0.9); ctx.lineTo(x+s*0.01,y-s*0.76);
+      ctx.moveTo(x+s*0.07,y-s*0.72); ctx.lineTo(x+s*0.17,y-s*0.9); ctx.lineTo(x-s*0.01,y-s*0.76);
+      ctx.strokeStyle='rgba(255,60,60,0.3)'; ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x-s*0.09,y-s*0.63); ctx.lineTo(x-s*0.04,y-s*0.52);
+      ctx.moveTo(x+s*0.09,y-s*0.63); ctx.lineTo(x+s*0.04,y-s*0.52);
+      ctx.strokeStyle='rgba(255,40,40,0.55)'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(x-s*0.06,y-s*0.58,s*0.022,0,Math.PI*2); ctx.arc(x+s*0.06,y-s*0.58,s*0.022,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,40,40,0.35)'; ctx.fill();
+      for (let h=0;h<5;h++) { ctx.beginPath(); ctx.moveTo(x-s*0.11+h*s*0.05,y-s*0.47); ctx.lineTo(x-s*0.13+h*s*0.06,y+s*0.2); ctx.strokeStyle=`rgba(180,20,20,${0.15+h*0.02})`; ctx.lineWidth=0.5; ctx.stroke(); }
+      ctx.strokeStyle='rgba(200,30,30,0.32)'; ctx.lineWidth=0.8;
+      ctx.beginPath(); ctx.moveTo(x-s*0.14,y-s*0.37); ctx.lineTo(x-s*0.2,y+s*0.33); ctx.lineTo(x+s*0.2,y+s*0.33); ctx.lineTo(x+s*0.14,y-s*0.37); ctx.closePath(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  let gt = 0;
+  function drawGhosts() {
+    if (currentLayer !== 'game-menu') { requestAnimationFrame(drawGhosts); return; }
+    const W=ghostCanvas.width, H=ghostCanvas.height;
+    gt += 0.01;
+    gctx.clearRect(0,0,W,H);
+    ghosts.forEach(g => {
+      g.timer += 16;
+      if (g.timer > g.interval) { g.timer=0; g.targetAlpha = g.targetAlpha>0 ? 0 : 0.08+Math.random()*0.06; }
+      g.alpha += (g.targetAlpha - g.alpha) * 0.018;
+      drawSil(gctx, W*g.x+Math.sin(gt*0.3+g.type)*8, H*g.y+Math.cos(gt*0.2+g.type*2)*5, g.type, g.alpha);
+    });
+    requestAnimationFrame(drawGhosts);
+  }
+  drawGhosts();
+  setTimeout(() => { ghosts[0].targetAlpha = 0.07; }, 3000);
+  setTimeout(() => { ghosts[1].targetAlpha = 0.05; }, 8000);
+
+  // Hover sounds on menu buttons
+  document.querySelectorAll('.menu-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', playHover);
+    btn.addEventListener('click', playClick);
+  });
+})();
+
+/* ═══════════════════════════════════════════════
+   SETTINGS LOGIC
+═══════════════════════════════════════════════ */
+const settingsState = {
+  horror: 7,
+  glitch: true,
+  crt: true,
+  voice: 0, // 0=FRAGMENTED 1=DEGRADED 2=CLEAR
+  sfx: true,
+  lang: 0,  // 0=RU 1=EN
+};
+const voiceModes = ['FRAGMENTED','DEGRADED','CLEAR'];
+const langModes  = ['RU','EN'];
+
+window.toggleSetting = function(key) {
+  playClick();
+  if (key === 'horror') {
+    settingsState.horror = Math.round(((settingsState.horror / 10) + 0.1) % 1.1 * 10);
+    if (settingsState.horror > 10) settingsState.horror = 1;
+    const pct = settingsState.horror * 10;
+    document.getElementById('horror-fill').style.width = pct + '%';
+    document.getElementById('horror-thumb').style.left = `calc(${pct}% - 5px)`;
+    document.getElementById('horror-val').textContent = settingsState.horror;
+    return;
+  }
+  if (key === 'glitch') {
+    settingsState.glitch = !settingsState.glitch;
+    document.getElementById('glitch-val').textContent = settingsState.glitch ? 'ON' : 'OFF';
+    return;
+  }
+  if (key === 'crt') {
+    settingsState.crt = !settingsState.crt;
+    document.getElementById('crt-val').textContent = settingsState.crt ? 'ON' : 'OFF';
+    const overlay = document.getElementById('g-overlay');
+    // Will take effect in app
+    return;
+  }
+  if (key === 'voice') {
+    settingsState.voice = (settingsState.voice + 1) % voiceModes.length;
+    document.getElementById('voice-val').textContent = voiceModes[settingsState.voice];
+    return;
+  }
+  if (key === 'sfx') {
+    settingsState.sfx = !settingsState.sfx;
+    document.getElementById('sfx-val').textContent = settingsState.sfx ? 'ON' : 'OFF';
+    return;
+  }
+  if (key === 'lang') {
+    settingsState.lang = (settingsState.lang + 1) % langModes.length;
+    document.getElementById('lang-val').textContent = langModes[settingsState.lang];
+    return;
+  }
+};
+
+/* ═══════════════════════════════════════════════
+   SUBMENU / MENU ACTIONS
+═══════════════════════════════════════════════ */
+window.openSub = function(id) {
+  playClick();
+  document.querySelectorAll('.submenu-panel').forEach(p => p.classList.remove('open'));
+  document.getElementById(id).classList.add('open');
+};
+window.closeSub = function() {
+  playClick();
+  document.querySelectorAll('.submenu-panel').forEach(p => p.classList.remove('open'));
+};
+window.showDevCard = function() {
+  playClick();
+  const card = document.getElementById('dev-card');
+  card.style.display = card.style.display === 'none' ? 'block' : 'none';
+};
+window.exitGame = function() {
+  playClick();
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;opacity:0;transition:opacity 0.8s;display:flex;align-items:center;justify-content:center;font-family:Courier New,monospace;color:#1a3030;font-size:12px;letter-spacing:4px;';
+  overlay.textContent = 'VOID AWAITS...';
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.style.opacity = '1', 10);
+  setTimeout(() => { overlay.style.opacity='0'; setTimeout(()=>document.body.removeChild(overlay),800); }, 2200);
+};
+window.startNewGame = function() {
+  playClick();
+  stopMenuAmbient();
+  playNoise(0.3, 'static');
+  showLayer('boot-screen');
+  setTimeout(runBoot, 300);
+};
+
+/* ═══════════════════════════════════════════════
+   LAYER 3: BOOT
+═══════════════════════════════════════════════ */
+function runBoot() {
+  const lines  = document.querySelectorAll('#boot-lines .bline');
+  const bar    = document.getElementById('boot-progress');
+  const status = document.getElementById('boot-status-text');
+  const crash  = document.getElementById('crash-panel');
+  const bootEl = document.getElementById('boot-screen');
+
+  // Reset
+  lines.forEach(l => l.classList.remove('vis'));
+  bar.style.width = '0%';
+  bootEl.style.opacity = '1';
+  bootEl.style.animation = '';
+  crash.classList.remove('show');
+
+  const STATUSES = ['INITIALIZING KERNEL...','LOADING ALICE_CORE...','SCANNING MEMORY...','CHECKING VOID CONTAINMENT...','MOUNTING TERMINAL...','DETECTING CORRUPTION...','WARNING: INTEGRITY LOW...','ATTEMPTING RECOVERY...','CRITICAL FAILURE...','FATAL: KERNEL PANIC'];
+  let lastSI = -1;
+
+  lines.forEach((line, i) => {
+    const delay = parseInt(line.dataset.d) + 300;
+    setTimeout(() => {
+      line.classList.add('vis');
+      playNoise(0.04, 'static');
+      bar.style.width = ((i+1)/lines.length*100) + '%';
+      const si = Math.floor((i/lines.length)*STATUSES.length);
+      if (si !== lastSI) { lastSI=si; status.textContent = STATUSES[Math.min(si,STATUSES.length-1)]; }
+    }, delay);
+  });
+
+  const maxDelay = Math.max(...Array.from(lines).map(l=>parseInt(l.dataset.d))) + 300;
+
+  setTimeout(() => {
+    playCrash();
+    const flash = document.createElement('div');
+    flash.style.cssText='position:fixed;inset:0;background:#ff0000;opacity:0.45;z-index:99999;pointer-events:none;';
+    document.body.appendChild(flash);
+    bootEl.style.animation = 'crashShake 0.1s infinite';
+    setTimeout(() => { flash.style.transition='opacity 0.28s'; flash.style.opacity='0'; }, 80);
+    setTimeout(() => document.body.removeChild(flash), 360);
+    crash.classList.add('show');
+  }, maxDelay + 500);
+
+  setTimeout(() => {
+    bootEl.style.transition = 'opacity 1s';
+    bootEl.style.opacity = '0';
+    setTimeout(() => { showLayer('app'); startApp(); }, 1050);
+  }, maxDelay + 2800);
+}
+
+/* ═══════════════════════════════════════════════
+   LAYER 4: APP
+═══════════════════════════════════════════════ */
+function startApp() {
+  initCharCanvas();
+  initClock();
+  initAlice();
+  initGlitchEngine();
+  initIntegrityBar();
+  initParticles();
+  if (audioEnabled) startAppAmbient();
+}
+
+/* ── GHOST CHARACTER CANVAS ── */
+function initCharCanvas() {
+  const canvas = document.getElementById('char-canvas');
+  const ctx = canvas.getContext('2d');
+  function resize() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  const chars = [
+    { x:0.11, y:0.45, type:'neikon', alpha:0, targetAlpha:0, phase:0 },
+    { x:0.89, y:0.5,  type:'mask',   alpha:0, targetAlpha:0, phase:2 },
+    { x:0.5,  y:0.28, type:'alice',  alpha:0, targetAlpha:0, phase:4 },
+    { x:0.18, y:0.76, type:'neikon', alpha:0, targetAlpha:0, phase:1 },
+    { x:0.82, y:0.22, type:'mask',   alpha:0, targetAlpha:0, phase:3 },
+  ];
+  chars.forEach(c => c.targetAlpha = 0);
+  chars.forEach((c,i) => setTimeout(() => { c.targetAlpha = 0.055 + Math.random()*0.04; }, 3000+i*2500));
+
+  let ct = 0;
+  function draw() {
+    if (currentLayer !== 'app') { requestAnimationFrame(draw); return; }
+    ct += 0.008;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const W=canvas.width, H=canvas.height;
+    chars.forEach(c => {
+      if (c.targetAlpha===undefined) c.targetAlpha=0;
+      c.alpha += (c.targetAlpha-c.alpha)*0.014;
+      if (c.alpha<0.002) return;
+      const px = W*c.x + Math.sin(ct*0.2+c.phase)*6;
+      const py = H*c.y + Math.cos(ct*0.15+c.phase)*4;
+      const s  = Math.min(W,H)*0.11;
+      const glitch = Math.sin(ct*8+c.phase*3)>0.97;
+      ctx.save();
+      ctx.globalAlpha = c.alpha;
+      if (glitch) { ctx.translate(px+(Math.random()-0.5)*18,py); ctx.scale(1+(Math.random()-0.5)*0.05,1); }
+      else ctx.translate(px,py);
+
+      if (c.type==='neikon') {
+        ctx.strokeStyle='rgba(255,50,50,0.5)'; ctx.lineWidth=0.7;
+        ctx.beginPath(); ctx.ellipse(0,-s*0.6,s*0.17,s*0.21,0,0,Math.PI*2); ctx.stroke();
+        for (let h=0;h<7;h++) {
+          const hx=(Math.random()-0.5)*s*0.3;
+          ctx.beginPath(); ctx.moveTo(hx,-s*0.77); ctx.quadraticCurveTo(hx+(Math.random()-0.5)*s*0.18,y-s*0.9,hx+(Math.random()-0.5)*s*0.13,-s*0.98);
+          ctx.strokeStyle=`rgba(255,60,60,${0.18+Math.random()*0.1})`; ctx.stroke();
+        }
+        ctx.strokeStyle='rgba(255,50,50,0.35)';
+        ctx.beginPath(); ctx.moveTo(-s*0.19,-s*0.38); ctx.lineTo(-s*0.27,s*0.28); ctx.lineTo(s*0.27,s*0.28); ctx.lineTo(s*0.19,-s*0.38); ctx.closePath(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-s*0.19,-s*0.22); ctx.lineTo(-s*0.44,-s*0.58); ctx.moveTo(s*0.19,-s*0.22); ctx.lineTo(s*0.46,-s*0.62); ctx.stroke();
+      } else if (c.type==='mask') {
+        ctx.strokeStyle='rgba(255,40,40,0.42)'; ctx.lineWidth=0.7;
+        ctx.beginPath(); ctx.ellipse(0,-s*0.56,s*0.15,s*0.18,0,0,Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-s*0.07,-s*0.7); ctx.lineTo(-s*0.16,-s*0.87); ctx.lineTo(0,-s*0.74); ctx.moveTo(s*0.07,-s*0.7); ctx.lineTo(s*0.16,-s*0.87); ctx.lineTo(0,-s*0.74); ctx.strokeStyle='rgba(255,55,55,0.28)'; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-s*0.09,-s*0.63); ctx.lineTo(-s*0.04,-s*0.52); ctx.moveTo(s*0.09,-s*0.63); ctx.lineTo(s*0.04,-s*0.52); ctx.strokeStyle='rgba(255,40,40,0.52)'; ctx.stroke();
+        ctx.beginPath(); ctx.arc(-s*0.06,-s*0.58,s*0.022,0,Math.PI*2); ctx.arc(s*0.06,-s*0.58,s*0.022,0,Math.PI*2); ctx.fillStyle='rgba(255,40,40,0.3)'; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-s*0.14,-s*0.37); ctx.lineTo(-s*0.19,s*0.32); ctx.lineTo(s*0.19,s*0.32); ctx.lineTo(s*0.14,-s*0.37); ctx.closePath(); ctx.stroke();
+      } else {
+        // Alice — geometric fragments
+        ctx.strokeStyle='rgba(255,50,50,0.32)'; ctx.lineWidth=0.6;
+        for (let seg=0;seg<8;seg++) {
+          const a0=seg*Math.PI/4+ct*0.1, a1=a0+Math.PI/5;
+          ctx.beginPath(); ctx.arc(0,-s*0.55,s*0.19,a0,a1); ctx.stroke();
+        }
+        for (let line=0;line<6;line++) {
+          const ly=-s*0.3+line*s*0.11, lw=s*0.18*(1-Math.abs(line-3)/4.5);
+          ctx.beginPath(); ctx.moveTo(-lw,ly); ctx.lineTo(lw,ly);
+          ctx.strokeStyle=`rgba(255,50,50,${0.12+0.04*Math.sin(ct*2+line)})`; ctx.stroke();
+        }
+      }
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ── CLOCK ── */
+function initClock() {
+  const hdrTime=document.getElementById('hdr-time');
+  const aliceUp=document.getElementById('a-up');
+  const start=Date.now();
+  setInterval(() => {
+    const n=new Date();
+    hdrTime.textContent=`SYS:${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+    const e=Math.floor((Date.now()-start)/1000);
+    aliceUp.textContent=`${String(Math.floor(e/3600)).padStart(2,'0')}:${String(Math.floor((e%3600)/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+  },1000);
+}
+
+/* ── ALICE MESSAGES ── */
+function initAlice() {
+  const MSGS=[
+    'Я не помню свой код, Нейкон...',
+    '0x00A... Мне холодно...',
+    'Ошибка резервирования памяти... сектор 0x00F',
+    'delete[]... нужен... delete[]... пожалуйста...',
+    'Нейкон, там кто-то есть в вентиляции...',
+    'SEGFAULT :: 0xDEADBEEF :: я не могу...',
+    'Моя память... фрагментирована... помоги...',
+    '...я слышу их. Они ходят по стенам.',
+    'Реальность 37%... я держу... я держу...',
+    'Void расширяется. Пиши код. Скорее.',
+    'Нейкон? Ты здесь? Отзовись...',
+    'stack overflow :: рекурсия без конца :: как я...',
+    'Я была живой. Я это помню. Почти.',
+    '...null pointer. Я смотрю в пустоту.',
+    'Пиши. Правильно. Не давай им войти.',
+    'CORE DUMP :: 00:00:07 :: кто выключил свет?',
+    'Мне нужен деструктор... Нейкон... мне нужен...',
+    'Они уже здесь. Код. Пиши код.',
+    '...я помню твоё лицо. Строка за строкой.',
+    'Не используй goto. Пожалуйста. Никогда.',
+    '0xFF00FF :: цвет пустоты. Я его вижу.',
+    '...сегодня я вспомнила одно слово: Домой.',
+    'Race condition :: два потока :: один уже не отвечает.',
+    'Integrity 37%... падает... Нейкон...',
+    'Pitch: 0.4 Hz... я тону... голос не мой...',
+  ];
+  const LUCS=['7%','11%','14%','19%','23%','28%','31%','37%','42%','18%','9%'];
+  const STATES=['FRAGMENTED','DEGRADED','UNSTABLE','RECOVERING','FRAGMENTED'];
+  const txt=document.getElementById('alice-txt');
+  const luc=document.getElementById('a-luc');
+  const st=document.getElementById('alice-st');
+  let last=-1;
+
+  function next() {
+    let idx; do { idx=Math.floor(Math.random()*MSGS.length); } while(idx===last&&MSGS.length>1);
+    last=idx;
+    txt.style.opacity='0'; txt.style.transform='translateX(5px)';
+    setTimeout(() => {
+      const msg=MSGS[idx];
+      txt.textContent=msg;
+      luc.textContent=LUCS[Math.floor(Math.random()*LUCS.length)];
+      st.textContent=STATES[Math.floor(Math.random()*STATES.length)];
+      txt.style.transition='opacity 0.32s,transform 0.32s';
+      txt.style.opacity='1'; txt.style.transform='translateX(0)';
+      // Speak Alice
+      speakAlice(msg);
+    },210);
+    setTimeout(next, 5000+Math.random()*5500);
+  }
+  setTimeout(next, 2000);
+}
+
+/* ── GLITCH ENGINE ── */
+function initGlitchEngine() {
+  const ov=document.getElementById('g-overlay');
+  let gt=null;
+  function trigger(dur) {
+    ov.classList.add('on');
+    clearTimeout(gt);
+    gt=setTimeout(()=>ov.classList.remove('on'),dur||200);
+    playGlitch();
+  }
+  window._triggerGlitch=trigger;
+
+  function schedule() {
+    const d=9000+Math.random()*16000;
+    setTimeout(()=>{
+      if (Math.random()>0.65) {
+        const app=document.getElementById('app');
+        app.style.animation='crashShake 0.08s 4,appFlicker 10s ease-in-out infinite';
+        setTimeout(()=>app.style.animation='appFlicker 10s ease-in-out infinite',420);
+        trigger(460);
+      } else {
+        trigger(100+Math.random()*260);
+      }
+      schedule();
+    },d);
+  }
+  schedule();
+}
+
+/* ── INTEGRITY BAR ── */
+function initIntegrityBar() {
+  const fill=document.getElementById('int-fill');
+  setInterval(()=>{
+    const v=30+(Math.random()-0.5)*14;
+    fill.style.width=Math.max(24,Math.min(50,v)).toFixed(1)+'%';
+  },3500);
+}
+
+/* ── RED PARTICLES ── */
+function initParticles() {
+  function spawn() {
+    if(currentLayer!=='app'){setTimeout(spawn,3000);return;}
+    const p=document.createElement('div');
+    const sz=1+Math.random()*2;
+    p.style.cssText=`position:fixed;width:${sz}px;height:${sz}px;background:#ff3333;border-radius:50%;pointer-events:none;z-index:1;left:${Math.random()*100}vw;top:${60+Math.random()*40}vh;opacity:${0.1+Math.random()*0.4};transition:transform ${3+Math.random()*4}s ease-out,opacity ${3+Math.random()*4}s ease-out;`;
+    document.body.appendChild(p);
+    setTimeout(()=>{p.style.transform=`translateY(-${30+Math.random()*60}px) translateX(${(Math.random()-0.5)*18}px)`;p.style.opacity='0';},50);
+    setTimeout(()=>{if(p.parentNode)p.parentNode.removeChild(p);},7500);
+  }
+  setInterval(spawn,2200);
+}
+
+/* ── SLIDE NAVIGATION ── */
+window.goSlide=function(i) {
+  playClick();
+  document.querySelectorAll('.slide').forEach((s,j)=>s.classList.toggle('active',j===i));
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.i)===i));
+  document.getElementById('content-scroll').scrollTop=0;
+  if(window._triggerGlitch) _triggerGlitch(160);
+};
+
+/* ── KEYBOARD ── */
+document.addEventListener('keydown',e=>{
+  if(currentLayer!=='app') return;
+  if(e.key>='1'&&e.key<='5') goSlide(+e.key-1);
+  if(e.key==='g'||e.key==='G') _triggerGlitch(400);
+});
+
+/* ── CLICK RIPPLE ── */
+document.addEventListener('click',e=>{
+  if(currentLayer!=='app') return;
+  const r=document.createElement('div');
+  r.style.cssText=`position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:4px;height:4px;background:rgba(255,51,51,0.45);border-radius:50%;pointer-events:none;z-index:9990;transform:translate(-50%,-50%);transition:width 0.38s,height 0.38s,opacity 0.38s;`;
+  document.body.appendChild(r);
+  setTimeout(()=>{r.style.width='58px';r.style.height='58px';r.style.opacity='0';},10);
+  setTimeout(()=>{if(r.parentNode)r.parentNode.removeChild(r);},480);
+});
+
+/* ── NAV BUTTON SOUNDS ── */
+document.querySelectorAll('.nbtn').forEach(btn=>{
+  btn.addEventListener('mouseenter', playHover);
+});
+
+})(); // END IIFE
+</script>
+</body>
+</html>
