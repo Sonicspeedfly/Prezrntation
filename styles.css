@@ -1,5 +1,5 @@
     /* ============================================================
-       NEICON // ALICE_CORE  —  emergency presentation shell
+       NEIKON // ALICE_CORE  —  emergency presentation shell
        Pure HTML/CSS/Vanilla JS. No frameworks. No CDN. Offline.
        ============================================================ */
 
@@ -957,147 +957,61 @@
         pointer-events: none;
         z-index: -1;
     }
-    .boot-brand svg.brand-mark {
+    /* The mark is an external SVG (assets/brand-mark.svg, built by
+       assets/build-brand.js). Everything that moves inside it — the
+       breathing spire, the four drifting crystals, the dust — is
+       animated by CSS embedded in that file, so there is nothing here
+       to drive it: an <img>-embedded SVG is its own document and cannot
+       be reached by these rules. What stays here is the framing. */
+    .boot-brand .brand-mark {
         width: 78px;
         height: auto;
         opacity: 0.94;
         filter:
             drop-shadow(0 0 4px rgba(255, 255, 255, 0.20))
             drop-shadow(0 0 12px rgba(180, 230, 230, 0.10));
-        transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
-        overflow: visible;
-        animation: brand-breathe 5.6s ease-in-out infinite;
+        transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1),
+                    opacity 0.4s ease, filter 0.4s ease;
     }
-    .boot-brand:hover svg.brand-mark {
+    .boot-brand:hover .brand-mark {
         opacity: 1;
         transform: translateY(-1px) scale(1.05);
         filter:
             drop-shadow(0 0 6px rgba(255, 255, 255, 0.40))
             drop-shadow(0 0 18px rgba(180, 230, 230, 0.22));
     }
-    .boot-brand svg.brand-mark .brand-halo {
-        transform-origin: 100px 105px;
-        animation: brand-halo-spin 36s linear infinite;
-    }
-    .boot-brand svg.brand-mark .brand-shards .shard {
-        /* each shard breathes very subtly at its own offset, so the
-           cluster looks "alive" without anything rotating in place */
-        transform-origin: center;
-    }
-    .boot-brand svg.brand-mark .brand-shards .shard-a { animation: shard-pulse 6.4s ease-in-out infinite 0.0s; }
-    .boot-brand svg.brand-mark .brand-shards .shard-b { animation: shard-pulse 5.6s ease-in-out infinite 1.1s; }
-    .boot-brand svg.brand-mark .brand-shards .shard-c { animation: shard-pulse 7.2s ease-in-out infinite 0.4s; }
-    .boot-brand svg.brand-mark .brand-shards .shard-d { animation: shard-pulse 8.0s ease-in-out infinite 2.0s; }
-    .boot-brand svg.brand-mark .brand-glint {
-        animation: brand-glint 4.4s ease-in-out infinite;
-    }
+
+    /* Wordmark — the studio's real lettering (assets/brand-wordmark.svg),
+       not a font approximation, so the hand-drawn italic and its chrome
+       bevel survive on machines that have no Garamond anywhere. */
     .boot-brand .brand-wordmark {
         display: inline-flex;
         flex-direction: column;
-        gap: 2px;
+        align-items: flex-start;
+        gap: 3px;
         line-height: 1;
     }
-    .boot-brand .brand-wordmark .w1 {
-        /* Offline-safe italic serif cascade.  The reference logo uses a
-           Garamond/Cormorant-style hand italic; Georgia italic is the most
-           reliable system font that ships with that aesthetic on every
-           OS (Windows/macOS/Linux/Android/iOS).  We keep Cormorant first
-           in case the system happens to have it. */
-        font-family: "Cormorant Garamond", "EB Garamond",
-                     Garamond, "Iowan Old Style", "Palatino Linotype",
-                     Georgia, "Times New Roman", serif;
-        font-style: italic;
-        font-weight: 500;
-        font-size: 26px;
-        color: #ffffff;
-        letter-spacing: 0.005em;
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+    .boot-brand .brand-word {
+        display: block;
+        width: 104px;
+        height: auto;
+        opacity: 0.92;
+        filter: drop-shadow(0 0 5px rgba(180, 230, 230, 0.16));
+        transition: opacity 0.4s ease, filter 0.4s ease;
     }
-    .boot-brand .brand-wordmark .w1 .accent {
-        color: #ffffff;
-        font-style: italic;
-        text-shadow: 0 0 12px rgba(205, 253, 243, 0.45);
+    .boot-brand:hover .brand-word {
+        opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(180, 230, 230, 0.30));
     }
     .boot-brand .brand-wordmark .w2 {
+        /* sits under the lettering and tracks its right edge */
+        align-self: stretch;
+        text-align: right;
         font-family: "Courier New", monospace;
-        font-size: 8.5px;
-        letter-spacing: 0.40em;
-        color: rgba(220, 240, 240, 0.45);
+        font-size: 8px;
+        letter-spacing: 0.30em;
         text-transform: uppercase;
-        margin-top: 4px;
-    }
-    @keyframes shard-pulse {
-        0%, 100% { opacity: 0.88; }
-        50%      { opacity: 1.00; }
-    }
-    @keyframes brand-breathe {
-        0%, 100% { opacity: 0.86; filter: drop-shadow(0 0 5px rgba(180, 230, 230, 0.32)) drop-shadow(0 0 14px rgba(120, 200, 195, 0.14)); }
-        50%      { opacity: 1.00; filter: drop-shadow(0 0 8px rgba(200, 245, 240, 0.55)) drop-shadow(0 0 22px rgba(120, 200, 195, 0.28)); }
-    }
-    @keyframes brand-halo-spin {
-        from { transform: rotate(0deg);   }
-        to   { transform: rotate(360deg); }
-    }
-    @keyframes brand-shine {
-        0%, 100% { opacity: 0.2;  transform: translate(0, 0) skewY(0); }
-        45%      { opacity: 0.65; transform: translate(-2px, -2px) skewY(-3deg); }
-        55%      { opacity: 0.85; transform: translate(2px, 2px) skewY(3deg); }
-    }
-    @keyframes brand-glint {
-        0%, 80%, 100% { opacity: 0; }
-        85%, 95%      { opacity: 1; }
-    }
-
-    /* --- SPARKLE DOTS around the cluster ---
-       Each .spk-N has its own opacity rhythm and tiny scale pulse so
-       the surrounding "dust" feels alive instead of just blinking. */
-    .boot-brand svg.brand-mark .brand-sparkles .spk {
-        transform-origin: center;
-        transform-box: fill-box;
-        opacity: 0;
-    }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-1  { animation: spark-twinkle 4.2s ease-in-out infinite 0.0s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-2  { animation: spark-twinkle 5.5s ease-in-out infinite 0.7s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-3  { animation: spark-twinkle 3.9s ease-in-out infinite 1.4s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-4  { animation: spark-twinkle 6.1s ease-in-out infinite 0.3s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-5  { animation: spark-twinkle 4.7s ease-in-out infinite 2.1s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-6  { animation: spark-twinkle 3.4s ease-in-out infinite 1.0s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-7  { animation: spark-twinkle 5.0s ease-in-out infinite 0.5s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-8  { animation: spark-twinkle 4.4s ease-in-out infinite 1.8s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-9  { animation: spark-twinkle 5.8s ease-in-out infinite 2.5s; }
-    .boot-brand svg.brand-mark .brand-sparkles .spk-10 { animation: spark-twinkle 3.7s ease-in-out infinite 0.9s; }
-    @keyframes spark-twinkle {
-        0%, 100% { opacity: 0;    transform: scale(0.6); }
-        35%      { opacity: 0.85; transform: scale(1.15); }
-        55%      { opacity: 0.6;  transform: scale(0.95); }
-        70%      { opacity: 0.95; transform: scale(1.20); }
-    }
-
-    /* 4-point stars: rotate slowly + twinkle */
-    .boot-brand svg.brand-mark .brand-stars .star {
-        transform-origin: center;
-        transform-box: fill-box;
-        opacity: 0;
-    }
-    .boot-brand svg.brand-mark .brand-stars .star-1 { animation: star-twinkle 6.8s ease-in-out infinite 0.6s; }
-    .boot-brand svg.brand-mark .brand-stars .star-2 { animation: star-twinkle 5.4s ease-in-out infinite 2.4s; }
-    .boot-brand svg.brand-mark .brand-stars .star-3 { animation: star-twinkle 7.6s ease-in-out infinite 1.2s; }
-    @keyframes star-twinkle {
-        0%, 100% { opacity: 0;    transform: rotate(0deg)   scale(0.5); }
-        45%      { opacity: 0.85; transform: rotate(45deg)  scale(1.1); }
-        55%      { opacity: 1.00; transform: rotate(90deg)  scale(1.25); }
-        70%      { opacity: 0.55; transform: rotate(135deg) scale(0.95); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .boot-brand svg.brand-mark,
-        .boot-brand svg.brand-mark .brand-halo,
-        .boot-brand svg.brand-mark .brand-shine,
-        .boot-brand svg.brand-mark .brand-glint,
-        .boot-brand svg.brand-mark .brand-sparkles .spk,
-        .boot-brand svg.brand-mark .brand-stars .star { animation: none; }
-        .boot-brand svg.brand-mark .brand-sparkles .spk,
-        .boot-brand svg.brand-mark .brand-stars .star { opacity: 0.7; }
+        color: rgba(200, 235, 230, 0.42);
     }
 
     /* Status strip at very top */
@@ -1308,7 +1222,9 @@
         .boot-menu { max-width: 100%; }
         .boot-crystal { display: none; }
         .boot-brand { right: 16px; bottom: 14px; }
-        .boot-brand svg.brand-mark { width: 56px; }
+        .boot-brand .brand-mark { width: 56px; }
+        .boot-brand .brand-word { width: 76px; }
+        .boot-brand .by { display: none; }
     }
 
     /* ============================================================
@@ -2933,43 +2849,47 @@
     .demo-game .dg-side .dg-diff-badge.medium { color: var(--amber); }
     .demo-game .dg-side .dg-diff-badge.hard   { color: var(--blood); text-shadow: 0 0 6px rgba(255,51,51,0.35); }
 
-    .demo-game .dg-side .dg-stats {
+    /* The stats block is scoped to .demo-game rather than to .dg-side:
+       on phones main.js hoists it out of the HUD drawer and into the
+       scene so SANITY / FEAR stay on screen while you play, and it has
+       to keep its colours wherever it lands. */
+    .demo-game .dg-stats {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
     }
-    .demo-game .dg-side .dg-stat {
+    .demo-game .dg-stat {
         border: 1px solid rgba(255, 51, 51, 0.25);
         padding: 8px 10px;
         background: rgba(255, 51, 51, 0.04);
     }
-    .demo-game .dg-side .dg-stat .lbl {
+    .demo-game .dg-stat .lbl {
         display: block;
         font-size: 9.5px;
         letter-spacing: 0.30em;
         text-transform: uppercase;
         color: var(--ash);
     }
-    .demo-game .dg-side .dg-stat .val {
+    .demo-game .dg-stat .val {
         display: block;
         font-size: 22px;
         color: var(--bone);
         margin-top: 2px;
     }
-    .demo-game .dg-side .dg-stat.sanity .val { color: var(--cyan); }
-    .demo-game .dg-side .dg-stat.fear   .val { color: var(--blood); }
-    .demo-game .dg-side .dg-stat.fear.high .val { animation: dg-pulse 0.6s ease-in-out infinite; }
+    .demo-game .dg-stat.sanity .val { color: var(--cyan); }
+    .demo-game .dg-stat.fear   .val { color: var(--blood); }
+    .demo-game .dg-stat.fear.high .val { animation: dg-pulse 0.6s ease-in-out infinite; }
     @keyframes dg-pulse {
         0%, 100% { opacity: 1;    text-shadow: 0 0 6px rgba(255,51,51,0.35); }
         50%      { opacity: 0.75; text-shadow: 0 0 14px rgba(255,51,51,0.65); }
     }
-    .demo-game .dg-side .dg-bar {
+    .demo-game .dg-bar {
         margin-top: 4px;
         height: 3px;
         background: rgba(255,255,255,0.05);
         overflow: hidden;
     }
-    .demo-game .dg-side .dg-bar i {
+    .demo-game .dg-bar i {
         display: block;
         height: 100%;
         width: 0;
@@ -3384,6 +3304,65 @@
     .demo-game .dg-editor .ed-status.ok   { color: var(--good); }
     .demo-game .dg-editor .ed-status.bad  { color: var(--blood); }
     .demo-game .dg-editor .ed-status.warn { color: var(--amber); }
+
+    /* ------------------------------------------------------------
+       Build output pane. Sits between the code and the button row so
+       a diagnostic and the row it names are on screen together.
+       `flex: 0 0 auto` + max-height means it takes its space from the
+       bottom of the sheet instead of squeezing the gutter/textarea
+       pair, whose metrics must stay paired (see .ed-gutter above).
+       Monospace and `white-space: pre` because this is compiler
+       output: column alignment is part of the meaning.
+       ------------------------------------------------------------ */
+    .demo-game .dg-editor .ed-out-head {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        margin: 6px 14px 3px;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 51, 51, 0.75);
+    }
+    .demo-game .dg-editor .ed-out-head.on { display: flex; }
+    .demo-game .dg-editor .ed-out-head .ed-out-cmd {
+        color: rgba(246, 236, 236, 0.40);
+        letter-spacing: 0;
+        text-transform: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 60%;
+    }
+    .demo-game .dg-editor .ed-out {
+        display: none;
+        flex: 0 0 auto;
+        max-height: 132px;
+        overflow: auto;
+        margin: 0 14px 6px;
+        padding: 6px 8px;
+        border: 1px solid rgba(255, 51, 51, 0.28);
+        border-radius: 3px;
+        background: #060203;
+        font-family: "Courier New", monospace;
+        font-size: 11px;
+        line-height: 1.55;
+        white-space: pre;
+    }
+    .demo-game .dg-editor .ed-out.on { display: block; }
+    .demo-game .dg-editor .ed-out .ed-out-line { display: block; }
+    .demo-game .dg-editor .ed-out .sev-cmd     { color: var(--cyan); }
+    .demo-game .dg-editor .ed-out .sev-ctx     { color: rgba(246, 236, 236, 0.65); }
+    .demo-game .dg-editor .ed-out .sev-error   { color: var(--blood); }
+    .demo-game .dg-editor .ed-out .sev-warning { color: var(--amber); }
+    .demo-game .dg-editor .ed-out .sev-note    { color: rgba(91, 231, 255, 0.75); }
+    .demo-game .dg-editor .ed-out .sev-run     { color: rgba(246, 236, 236, 0.55); }
+    /* a failed build gets the mirror of the .solved flash below */
+    @keyframes dg-ed-fail {
+        0%, 100% { box-shadow: 0 0 0 transparent; }
+        50%      { box-shadow: 0 0 26px rgba(255, 51, 51, 0.45); border-color: var(--blood); }
+    }
+    .demo-game .dg-editor.failed { animation: dg-ed-fail 0.45s ease 2; }
     .demo-game .dg-editor .ed-actions {
         display: inline-flex;
         gap: 6px;
@@ -4007,3 +3986,1770 @@
        sibling combinator works without needing :has().
        ============================================================ */
     .demo-game.open ~ aside.jury { display: none !important; }
+
+
+    /* ############################################################
+       #                                                          #
+       #   MOBILE / TOUCH LAYER                                   #
+       #   Everything below adapts the pitch deck and the playable #
+       #   demo to phones — the jury is expected to open the QR    #
+       #   code on an Android handset and drive the whole thing    #
+       #   with their thumbs.                                     #
+       #                                                          #
+       #   Breakpoints                                            #
+       #     <= 820px  ..  phones + small tablets (main rework)    #
+       #     <= 480px  ..  narrow phones (typography squeeze)      #
+       #     coarse pointer .. touch-target + hover-state fixes    #
+       #     short landscape .. phone held sideways                #
+       #                                                          #
+       #   --kb is written by main.js from visualViewport and      #
+       #   holds the height of the on-screen keyboard, so inputs   #
+       #   never end up underneath it.                             #
+       #                                                          #
+       ############################################################ */
+
+    :root {
+        --kb: 0px;                       /* on-screen keyboard inset */
+        --safe-t: env(safe-area-inset-top, 0px);
+        --safe-b: env(safe-area-inset-bottom, 0px);
+        --safe-l: env(safe-area-inset-left, 0px);
+        --safe-r: env(safe-area-inset-right, 0px);
+    }
+
+    /* ------------------------------------------------------------
+       Global touch hygiene — applies at every width.
+       ------------------------------------------------------------ */
+    html { -webkit-text-size-adjust: 100%; }
+
+    /* The demo's HUD drawer chrome is injected by main.js for every
+       viewport but only ever used on phones — the desktop layout shows
+       the side panel permanently, so hide both by default and let the
+       mobile block below switch them on. */
+    .demo-game .dg-hud-toggle,
+    .demo-game .dg-hud-scrim { display: none; }
+
+    /* Kill the 300 ms tap delay and the grey tap flash on Android. */
+    button,
+    .slide-btn,
+    .boot-btn,
+    .demo-cta-btn,
+    .dg-diff-card,
+    summary {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(255, 51, 51, 0.18);
+    }
+
+    /* Long unbreakable tokens (0xDEADBEEF, terminal-shattered.crystalcore.studio)
+       must not force the page to scroll sideways on a 360 px screen. */
+    .body-text,
+    .alice-stream,
+    .dg-screen,
+    .jury-list {
+        overflow-wrap: anywhere;
+    }
+
+    /* ============================================================
+       PHONES + SMALL TABLETS  (<= 820px)
+       ============================================================ */
+    @media (max-width: 820px) {
+
+        /* ---------- shell: top bar / nav strip / stage / alice ---- */
+        .shell {
+            grid-template-rows: auto auto minmax(0, 1fr) auto;
+            grid-template-columns: 100%;
+            grid-template-areas:
+                "top"
+                "menu"
+                "main"
+                "alice";
+            gap: 6px;
+            padding: calc(6px + var(--safe-t)) calc(6px + var(--safe-r))
+                     calc(6px + var(--safe-b)) calc(6px + var(--safe-l));
+        }
+
+        /* --- top bar: two compact lines instead of one wide row --- */
+        .topbar {
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 2px 10px;
+            padding: 6px 10px;
+            font-size: 9.5px;
+            letter-spacing: 0.10em;
+            line-height: 1.35;
+        }
+        .topbar .tag { gap: 6px; }
+        .topbar .right {
+            width: 100%;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+        }
+
+        /* --- slide nav becomes a horizontally scrollable chip strip --- */
+        nav.menu {
+            flex-direction: row;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 6px;
+            padding: 8px;
+            scroll-snap-type: x proximity;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        nav.menu::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        /* the decorative "[ NAV_CORE ]" caption and glitch bar only make
+           sense in the vertical desktop rail */
+        nav.menu::before,
+        nav.menu::after { display: none; }
+        .menu-foot { display: none; }
+
+        button.slide-btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            scroll-snap-align: center;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            padding: 0 12px 0 26px;
+            /* the base rule uses `all: unset`, which also resets box-sizing to
+               content-box — without this, min-height + padding would add up to
+               a 62 px chip and the strip would eat a tenth of the screen */
+            box-sizing: border-box;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        button.slide-btn::before { left: 8px; }
+        /* translateX on tap looks like a glitch inside a scroller */
+        button.slide-btn:hover { transform: none; }
+
+        /* --- stage --- */
+        main.stage {
+            padding: 14px 14px 18px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        main.stage::before { display: none; }
+
+        .breadcrumb { font-size: 9.5px; letter-spacing: 0.14em; margin-bottom: 8px; }
+        h1.slide-title { font-size: 21px; letter-spacing: 0.02em; }
+        h1.slide-title .index { font-size: 13px; margin-right: 8px; }
+        .subtitle { font-size: 10.5px; letter-spacing: 0.06em; margin-bottom: 14px; }
+        .divider { margin-bottom: 14px; }
+        .body-text { font-size: 13.5px; line-height: 1.55; }
+
+        /* --- alice: collapsed to its header by default, tap to expand ---
+           The collapsed state is the CSS *default* rather than something JS
+           applies on load: a phone opening the deck should never see the
+           chat strip eat a third of the screen, not even for one frame, and
+           there is no start-up transition to get stuck mid-flight. */
+        section.alice {
+            padding: 8px 12px 10px;
+            max-height: 34px;
+            transition: max-height 0.28s ease;
+        }
+        section.alice.expanded { max-height: 40vh; }
+        section.alice::after {
+            /* affordance chevron in the header row */
+            content: "▼";
+            position: absolute;
+            top: 9px; right: 12px;
+            font-size: 9px;
+            color: var(--blood);
+            opacity: 0.7;
+            pointer-events: none;
+            transition: transform 0.28s ease;
+        }
+        section.alice.expanded::after { transform: rotate(180deg); }
+        .alice-head {
+            cursor: pointer;
+            margin-bottom: 4px;
+            padding-right: 22px;
+            flex-wrap: wrap;
+            gap: 2px 10px;
+        }
+        .alice-head .label { font-size: 9.5px; letter-spacing: 0.12em; }
+        .alice-head .stats { font-size: 9px; letter-spacing: 0.10em; }
+        .alice-stream {
+            font-size: 12px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .alice-input { font-size: 11px; }
+
+        /* ---------- slide content blocks ---------- */
+        .statgrid { grid-template-columns: repeat(2, 1fr); gap: 6px; margin: 12px 0; }
+        .contrast { grid-template-columns: 1fr; gap: 10px; }
+        .contrast .pane { padding: 10px 12px 12px; }
+        .timeline .tl-step { font-size: 12.5px; }
+        .callout { font-size: 12.5px; }
+        .codeblock { font-size: 11px; padding: 10px 12px; }
+
+        /* ASCII art has a fixed character width — let it scroll in its own
+           box instead of blowing out the page width. */
+        pre.ascii {
+            font-size: 9px;
+            line-height: 1.35;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .edtech .kpi { grid-template-columns: repeat(2, 1fr); }
+        .edtech .bars .bar {
+            grid-template-columns: 1fr auto;
+            grid-template-areas:
+                "name pct"
+                "track track";
+            gap: 4px 8px;
+        }
+        .edtech .bars .bar .name  { grid-area: name; font-size: 10.5px; }
+        .edtech .bars .bar .pct   { grid-area: pct; }
+        .edtech .bars .bar .track { grid-area: track; }
+
+        .qr-block { flex-direction: column; align-items: center; gap: 12px; }
+        .qr-slot { width: min(180px, 60vw); height: min(180px, 60vw); }
+        .qr-block .qr-caption { text-align: left; }
+
+        .demo-cta-btn { padding: 14px 16px; }
+        .demo-cta-lead, .demo-cta-note { font-size: 11.5px; }
+
+        details.spk > summary { padding: 8px 0; }
+
+        /* ---------- boot screen ---------- */
+        .boot-stage {
+            grid-template-columns: 1fr;
+            padding: 32px 20px calc(96px + var(--safe-b));
+            gap: 18px;
+            align-content: center;
+        }
+        .boot-title { font-size: 38px; }
+        .boot-subtitle { font-size: 12px; }
+        .boot-supratitle { font-size: 10px; letter-spacing: 0.20em; }
+        .boot-menu { max-width: 100%; }
+        .boot-btn { padding: 15px 16px; font-size: 14px; letter-spacing: 0.14em; }
+        .boot-crystal { display: none; }
+        .boot-status { font-size: 9px; gap: 2px; }
+        .boot-version { font-size: 9px; }
+        .boot-brand {
+            right: 12px;
+            bottom: calc(10px + var(--safe-b));
+            transform: scale(0.72);
+            transform-origin: bottom right;
+        }
+
+        /* settings / load / extra popup — near full-screen sheet.
+           `.wide` is the expanded settings dialog and carries its own
+           width at a higher specificity, so it has to be named here too. */
+        .boot-popup,
+        .boot-popup.wide {
+            width: calc(100% - 16px);
+            max-width: none;
+            max-height: calc(100% - 72px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 22px 14px 18px;
+            font-size: 12.5px;
+        }
+        .boot-popup h2 { font-size: 15px; letter-spacing: 0.14em; }
+        .boot-popup .row {
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            padding: 8px 0;
+        }
+        .boot-popup .toggle { flex-wrap: wrap; gap: 8px; }
+        .boot-popup .toggle button {
+            padding: 8px 14px;
+            font-size: 11px;
+            min-height: 40px;
+        }
+        .boot-popup .close { top: 6px; right: 8px; font-size: 20px; padding: 6px 10px; }
+
+        /* five settings tabs never fit on one 360 px line — let them scroll
+           sideways rather than squash into unreadable stubs */
+        .settings-tabs {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            scrollbar-width: none;
+        }
+        .settings-tabs::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        .settings-tab {
+            flex: 0 0 auto;
+            padding: 10px 10px;
+            font-size: 10px;
+            letter-spacing: 0.10em;
+        }
+        /* label above, control below — a 170 px slider plus its label does
+           not fit next to each other on a phone */
+        .settings-pane .row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 6px;
+        }
+        .slider-wrap { min-width: 0; width: 100%; }
+        .slider-wrap input[type="range"] {
+            flex: 1 1 auto;
+            width: auto;
+            /* a 3 px rail is impossible to grab with a thumb */
+            height: 16px;
+            background: transparent;
+        }
+        .slider-wrap input[type="range"]::-webkit-slider-runnable-track {
+            height: 3px;
+            background: rgba(220, 240, 240, 0.18);
+            border-radius: 2px;
+        }
+        .slider-wrap input[type="range"]::-webkit-slider-thumb {
+            width: 18px; height: 18px;
+            margin-top: -8px;
+            border-radius: 50%;
+        }
+        .slider-wrap input[type="range"]::-moz-range-track {
+            height: 3px;
+            background: rgba(220, 240, 240, 0.18);
+            border-radius: 2px;
+        }
+        .slider-wrap input[type="range"]::-moz-range-thumb {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+        }
+        .reset-btn { min-height: 42px; width: 100%; }
+
+        /* ---------- fake loading screen ---------- */
+        .load-logo { font-size: 32px; }
+        .load-logo .small { font-size: 9px; letter-spacing: 0.22em; }
+        .load-bar-wrap { max-width: 86vw; }
+        .load-log { font-size: 9px; max-width: 86vw; }
+        .load-skip { padding: 10px 18px; }
+
+        /* ---------- jury checklist -> bottom sheet ----------
+           The pill floats clear of the collapsed Alice strip (34 px tall
+           plus the 6 px shell gutter) — otherwise it would sit on top of
+           the strip's own tap-to-expand target. */
+        aside.jury {
+            top: auto;
+            bottom: calc(50px + var(--safe-b));
+            right: calc(8px + var(--safe-r));
+        }
+        .jury-tab { height: 34px; padding: 0 12px 0 10px; font-size: 10px; }
+        .jury-panel {
+            position: fixed;
+            top: auto;
+            bottom: calc(92px + var(--safe-b));
+            left: calc(8px + var(--safe-l));
+            right: calc(8px + var(--safe-r));
+            width: auto;
+            max-height: min(70vh, 520px);
+            transform-origin: bottom center;
+        }
+        .jury-head h2 { font-size: 14px; }
+        .jury-lead { font-size: 11px; }
+        .jury-list { font-size: 12px; }
+        .jury-item label { padding: 12px 10px; }
+
+        /* ============================================================
+           PLAYABLE DEMO — single-column layout with an off-canvas HUD
+           ============================================================ */
+        /* Every stage is `position: absolute; inset: 0` against .demo-game,
+           and an absolute box resolves against the *padding* box — so
+           padding-bottom on .demo-game would not move them an inch. Shrink
+           the stages themselves instead: .dg-scene, .dg-side and .dg-editor
+           are all laid out inside a stage, so one rule lifts the whole demo
+           above the on-screen keyboard. */
+        .demo-game .dg-stage { bottom: var(--kb); }
+
+        .demo-game .dg-close {
+            top: calc(6px + var(--safe-t));
+            right: calc(6px + var(--safe-r));
+            padding: 9px 12px;
+            font-size: 10px;
+            letter-spacing: 0.10em;
+            z-index: 220;
+        }
+
+        /* --- boot stage --- */
+        .demo-game .dg-boot { padding: 16px; }
+        .demo-game .dg-boot .dg-boot-ascii {
+            font-size: 7px;
+            line-height: 1.25;
+            overflow-x: auto;
+        }
+        .demo-game .dg-boot-lines { font-size: 10px; }
+
+        /* --- difficulty stage: stacked cards, whole panel scrolls --- */
+        .demo-game .dg-diff {
+            padding: calc(52px + var(--safe-t)) 14px calc(20px + var(--safe-b));
+            justify-content: flex-start;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .demo-game .dg-diff h2 { font-size: 16px; letter-spacing: 0.16em; text-align: center; }
+        .demo-game .dg-diff .dg-diff-lead { font-size: 11.5px; margin-bottom: 16px; }
+        .demo-game .dg-diff-cards {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 460px;
+        }
+        .demo-game .dg-diff-card { padding: 14px; }
+        .demo-game .dg-diff-card h3 { font-size: 19px; }
+        .demo-game .dg-diff-card p { font-size: 11.5px; margin-bottom: 8px; }
+
+        /* --- game stage --- */
+        .demo-game .dg-game { flex-direction: column; }
+        .demo-game .dg-game .dg-scene {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: calc(46px + var(--safe-t)) 8px calc(8px + var(--safe-b));
+        }
+
+        /* The pseudo-3D room is pure decoration; keep it, but the terminal
+           and prompt become an honest vertical stack so nothing floats
+           over anything else on a narrow screen. */
+        .demo-game .dg-terminal {
+            position: relative;
+            left: auto;
+            top: auto;
+            transform: none;
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+            animation: none;          /* the breathing glow costs fps on phones */
+        }
+        .demo-game .dg-terminal .dg-term-bar {
+            font-size: 8.5px;
+            letter-spacing: 0.12em;
+            padding: 6px 8px;
+        }
+        .demo-game .dg-terminal .dg-screen {
+            flex: 1 1 auto;
+            max-height: none;
+            min-height: 0;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .demo-game .dg-prompt {
+            position: relative;
+            left: auto;
+            bottom: auto;
+            transform: none;
+            width: 100%;
+            margin-top: 8px;
+            padding: 8px 10px;
+            z-index: 20;
+            flex: 0 0 auto;
+        }
+        .demo-game .dg-prompt .ps { font-size: 11px; }
+        .demo-game .dg-prompt input {
+            /* >=16px keeps mobile browsers from auto-zooming on focus */
+            font-size: 16px;
+            min-width: 0;
+        }
+
+        /* --- HUD becomes an off-canvas drawer --- */
+        .demo-game .dg-hud-toggle {
+            position: absolute;
+            top: calc(6px + var(--safe-t));
+            left: calc(6px + var(--safe-l));
+            z-index: 220;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 12px;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid var(--ash);
+            color: var(--bone);
+            font: 700 10px/1 "Courier New", monospace;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .demo-game .dg-hud-toggle .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 6px var(--cyan);
+        }
+        .demo-game.hud-open .dg-hud-toggle { border-color: var(--cyan); color: var(--cyan); }
+
+        .demo-game .dg-hud-scrim {
+            display: block;
+            position: absolute;
+            inset: 0;
+            z-index: 150;
+            background: rgba(0, 0, 0, 0.55);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.22s ease, visibility 0s linear 0.22s;
+        }
+        .demo-game.hud-open .dg-hud-scrim {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.22s ease;
+        }
+
+        .demo-game .dg-game .dg-side {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 160;
+            flex: 0 0 auto;
+            width: min(320px, 88vw);
+            max-width: none;
+            padding: calc(50px + var(--safe-t)) 12px calc(12px + var(--safe-b));
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: rgba(5, 2, 3, 0.97);
+            box-shadow: -12px 0 32px rgba(0, 0, 0, 0.75);
+            transform: translateX(101%);
+            transition: transform 0.26s cubic-bezier(.6, .05, .2, 1);
+        }
+        .demo-game.hud-open .dg-game .dg-side { transform: translateX(0); }
+
+        .demo-game .dg-side .dg-walk ol { max-height: none; }
+        .demo-game .dg-quick .qrow button { padding: 7px 10px; }
+
+        /* --- SANITY / FEAR strip, hoisted out of the drawer by main.js --- */
+        .demo-game .dg-scene > .dg-stats {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            margin-bottom: 6px;
+            z-index: 20;
+        }
+        .demo-game .dg-scene > .dg-stats .dg-stat {
+            flex: 1 1 0;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-areas:
+                "lbl val"
+                "bar bar";
+            align-items: center;
+            gap: 2px 6px;
+            padding: 4px 8px;
+            background: rgba(8, 4, 5, 0.85);
+            border: 1px solid rgba(255, 51, 51, 0.30);
+        }
+        .demo-game .dg-scene > .dg-stats .dg-stat .lbl {
+            grid-area: lbl;
+            font-size: 8px;
+            letter-spacing: 0.16em;
+        }
+        .demo-game .dg-scene > .dg-stats .dg-stat .val {
+            grid-area: val;
+            font-size: 13px;
+            text-align: right;
+        }
+        .demo-game .dg-scene > .dg-stats .dg-bar { grid-area: bar; }
+
+        /* --- code editor: full-screen sheet, sits above the keyboard ---
+           `top` clears the close / HUD button row so both stay tappable
+           while the sheet is up; `padding-bottom: var(--kb)` keeps the
+           COMPILE & RUN row above the on-screen keyboard. */
+        .demo-game .dg-editor {
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: calc(56px + var(--safe-t));
+            width: auto;
+            max-height: none;
+            border-radius: 0;
+            border-left: 0;
+            border-right: 0;
+            border-bottom: 0;
+            transform: translateY(100%);
+            overflow: hidden;
+        }
+        .demo-game .dg-editor.open { transform: translateY(0); }
+        .demo-game .dg-editor .ed-bar { font-size: 9.5px; padding: 10px; flex: 0 0 auto; }
+        .demo-game .dg-editor .ed-bar .ed-x { padding: 6px 10px; }
+        .demo-game .dg-editor .ed-prompt { font-size: 11.5px; padding: 8px 10px 4px; flex: 0 0 auto; }
+        .demo-game .dg-editor .ed-hint { padding: 0 10px 6px; font-size: 10.5px; flex: 0 0 auto; }
+        /* While the keyboard is up there is barely any sheet left — cap the
+           briefing text so the code area never gets squeezed out entirely.
+           It stays readable, it just scrolls. */
+        body.kb-open .demo-game .dg-editor .ed-prompt,
+        body.kb-open .demo-game .dg-editor .ed-hint {
+            max-height: 3.6em;
+            overflow-y: auto;
+        }
+        .demo-game .dg-editor .ed-code { margin: 6px 10px; min-height: 90px; }
+        .demo-game .dg-editor .ed-out-head { margin: 6px 10px 3px; }
+        .demo-game .dg-editor .ed-out {
+            margin: 0 10px 6px;
+            max-height: 22vh;
+        }
+        /* keyboard up: the output pane is the first thing to give ground,
+           the code area is the last. */
+        body.kb-open .demo-game .dg-editor .ed-out { max-height: 12vh; }
+        .demo-game .dg-editor .ed-foot { flex: 0 0 auto; }
+        .demo-game .dg-editor textarea.ed-area {
+            font-size: 15px;          /* no auto-zoom, still readable code */
+            line-height: 1.5;
+            padding-left: 44px;
+            resize: none;
+        }
+        .demo-game .dg-editor .ed-gutter {
+            font-size: 15px;
+            line-height: 1.5;
+            width: 36px;
+        }
+        .demo-game .dg-editor .ed-foot {
+            padding: 8px 10px calc(8px + var(--safe-b));
+            gap: 6px;
+        }
+        .demo-game .dg-editor .ed-status { font-size: 9.5px; width: 100%; }
+        .demo-game .dg-editor .ed-actions {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .demo-game .dg-editor .ed-actions button {
+            flex: 1 1 auto;
+            min-height: 42px;
+            padding: 8px 10px;
+            font-size: 11px;
+        }
+        .demo-game .dg-editor .ed-actions button.primary { flex-basis: 100%; }
+
+        /* --- end stage --- */
+        .demo-game .dg-end { padding: 24px 16px; }
+        .demo-game .dg-end h2 { font-size: 20px; }
+        .demo-game .dg-end .dg-end-sub { font-size: 12px; }
+        .demo-game .dg-end .dg-end-log { font-size: 10px; overflow-x: auto; }
+        .demo-game .dg-end .dg-end-actions { flex-wrap: wrap; gap: 8px; }
+        .demo-game .dg-end .dg-end-actions button {
+            flex: 1 1 160px;
+            min-height: 44px;
+        }
+
+        /* Heavy full-screen effects are the first thing to drop on a phone
+           GPU — the deck still reads as a broken CRT without them. */
+        .demo-game .dg-vignette { background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.8) 100%); }
+    }
+
+    /* ============================================================
+       NARROW PHONES  (<= 480px)
+       ============================================================ */
+    @media (max-width: 480px) {
+        h1.slide-title { font-size: 18px; }
+        .body-text { font-size: 13px; }
+        .statgrid { grid-template-columns: 1fr 1fr; }
+        .statcard .val { font-size: 20px; }
+        .edtech .kpi { grid-template-columns: 1fr 1fr; }
+        pre.ascii { font-size: 8px; }
+        .boot-title { font-size: 30px; }
+        .load-logo { font-size: 26px; }
+        .demo-game .dg-boot .dg-boot-ascii { font-size: 6px; }
+    }
+
+    /* ============================================================
+       TOUCH DEVICES — hover states never "stick" on a finger tap,
+       and every interactive element gets a real 44 px target.
+       ============================================================ */
+    @media (hover: none) and (pointer: coarse) {
+        .boot-btn:hover,
+        .demo-game .dg-diff-card:hover,
+        .demo-cta-btn:hover { transform: none; }
+
+        .boot-btn,
+        .demo-cta-btn,
+        .dg-diff-card,
+        .jury-tab,
+        .jury-reset,
+        .load-skip,
+        .demo-game .dg-close,
+        .demo-game .dg-end .dg-end-actions button { min-height: 44px; }
+
+        .jury-item label { min-height: 44px; }
+
+        /* scrollable regions get momentum + their own scroll chaining */
+        main.stage,
+        .alice-stream,
+        .jury-list,
+        .demo-game .dg-screen,
+        .demo-game .dg-side,
+        .demo-game .dg-side .dg-walk ol { overscroll-behavior: contain; }
+    }
+
+    /* ============================================================
+       PHONE IN LANDSCAPE — very little vertical room, so the deck
+       gives every spare pixel to the slide body.
+       ============================================================ */
+    @media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+        .shell { gap: 4px; padding: 4px; }
+        .topbar { display: none; }
+        section.alice { max-height: 30px; }
+        section.alice.expanded { max-height: 30vh; }
+        /* A 360 px-tall landscape phone cannot stack the title above five
+           menu buttons — put them side by side again and let the menu
+           column scroll if the language still makes it too tall. */
+        .bootscreen { overflow-y: auto; }
+        .boot-stage {
+            grid-template-columns: 1fr 1fr;
+            padding: 12px 18px;
+            gap: 8px 20px;
+            align-items: center;
+        }
+        .boot-title { font-size: 24px; }
+        .boot-subtitle { font-size: 10px; }
+        .boot-supratitle { font-size: 9px; }
+        .boot-menu {
+            max-height: calc(100vh - 28px);
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .boot-menu::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        .boot-menu li { margin-bottom: 6px; }
+        .boot-btn { padding: 8px 12px; font-size: 11px; letter-spacing: 0.10em; }
+        .boot-brand { display: none; }
+        .boot-status, .boot-version { display: none; }
+        .boot-popup, .boot-popup.wide { max-height: calc(100% - 24px); }
+        .demo-game .dg-diff { padding-top: calc(44px + var(--safe-t)); }
+        .demo-game .dg-diff h2 { font-size: 14px; margin-bottom: 2px; }
+        .demo-game .dg-diff .dg-diff-lead { display: none; }
+        .demo-game .dg-diff-cards { grid-template-columns: repeat(3, 1fr); max-width: none; }
+        .demo-game .dg-diff-card p { display: none; }
+    }
+
+    /* ============================================================
+       REDUCED DATA / WEAK GPU — the ghosts, rain and scanline
+       overlays are decorative; drop them when the device asks us to
+       save power or the user asked for less motion.
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) and (max-width: 820px) {
+        .boot-rain,
+        .demo-game .dg-scanlines,
+        .load-crashlines { display: none; }
+    }
+
+    /* ############################################################
+       #   VOID STAGE  —  first-person 3D awakening                #
+       #   The canvas is the whole stage; everything here is the   #
+       #   HUD sitting on top of it.                               #
+       ############################################################ */
+    .demo-game .dg-void {
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        cursor: default;
+    }
+    .demo-game .dg-void-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+        cursor: crosshair;
+    }
+
+    /* --- eyelids: --lid runs 0 (shut) → 1 (open), driven by JS --- */
+    .demo-game .dg-void-lids {
+        --lid: 0;
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 30;
+    }
+    .demo-game .dg-void-lids .lid {
+        position: absolute;
+        left: -5%;
+        width: 110%;
+        height: calc(52% - var(--lid) * 52%);
+        background: #000;
+        transition: height 0.34s cubic-bezier(.4, 0, .2, 1);
+    }
+    .demo-game .dg-void-lids .lid.top { top: 0;    box-shadow: 0 14px 34px 10px #000; }
+    .demo-game .dg-void-lids .lid.bot { bottom: 0; box-shadow: 0 -14px 34px 10px #000; }
+
+    /* --- narration line --- */
+    .demo-game .dg-void-sub {
+        position: absolute;
+        left: 50%;
+        bottom: 16%;
+        transform: translateX(-50%);
+        z-index: 40;
+        max-width: min(680px, 86vw);
+        text-align: center;
+        font-family: "Courier New", monospace;
+        font-size: 15px;
+        line-height: 1.5;
+        letter-spacing: 0.04em;
+        color: var(--bone);
+        text-shadow: 0 0 12px rgba(0, 0, 0, 0.95), 0 0 26px rgba(91, 231, 255, 0.25);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+    }
+    .demo-game .dg-void-sub.on { opacity: 1; }
+
+    /* --- control legend --- */
+    .demo-game .dg-void-help {
+        position: absolute;
+        left: 18px;
+        bottom: 18px;
+        z-index: 40;
+        font: 11px/1.6 "Courier New", monospace;
+        letter-spacing: 0.10em;
+        color: rgba(246, 236, 236, 0.55);
+        text-transform: uppercase;
+        background: rgba(0, 0, 0, 0.45);
+        border-left: 2px solid var(--cyan-dim);
+        padding: 8px 12px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        pointer-events: none;
+        max-width: min(340px, 60vw);
+    }
+    .demo-game .dg-void-help.on { opacity: 1; transform: translateY(0); }
+    .demo-game .dg-void-help b { color: var(--cyan); font-weight: 700; }
+    /* while the pointer is captured the mouse hint is redundant */
+    .demo-game .dg-void-help.locked { opacity: 0.35; }
+
+    /* --- waypoint chevron + distance --- */
+    .demo-game .dg-void-compass {
+        position: absolute;
+        left: 50%;
+        bottom: 8%;
+        transform: translateX(-50%);
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 14px;
+        background: rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(91, 231, 255, 0.30);
+        border-radius: 999px;
+        font: 700 10px/1 "Courier New", monospace;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--cyan);
+        opacity: 0;
+        transition: opacity 0.5s ease, border-color 0.3s ease, color 0.3s ease;
+        pointer-events: none;
+    }
+    .demo-game .dg-void-compass.on { opacity: 0.9; }
+    .demo-game .dg-void-compass.near { color: var(--good); border-color: rgba(110, 255, 179, 0.5); }
+    .demo-game .dg-void-compass.urge {
+        animation: dg-void-urge 1.1s ease-in-out infinite;
+        border-color: var(--amber);
+        color: var(--amber);
+    }
+    @keyframes dg-void-urge {
+        0%, 100% { box-shadow: 0 0 0 rgba(255, 196, 107, 0); }
+        50%      { box-shadow: 0 0 18px rgba(255, 196, 107, 0.45); }
+    }
+    .demo-game .dg-void-compass .arrow {
+        width: 0; height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-bottom: 9px solid currentColor;
+        transition: transform 0.12s linear;
+    }
+    .demo-game .dg-void-compass .dist { color: var(--bone); letter-spacing: 0.10em; }
+
+    /* --- interact prompt --- */
+    .demo-game .dg-void-use {
+        position: absolute;
+        left: 50%;
+        top: 56%;
+        transform: translate(-50%, -50%) scale(0.94);
+        z-index: 45;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        background: rgba(4, 10, 12, 0.78);
+        border: 1px solid var(--cyan);
+        color: var(--bone);
+        font: 700 12px/1 "Courier New", monospace;
+        letter-spacing: 0.20em;
+        text-transform: uppercase;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        box-shadow: 0 0 26px rgba(91, 231, 255, 0.30);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+    }
+    .demo-game .dg-void-use.on {
+        opacity: 1;
+        visibility: visible;
+        transform: translate(-50%, -50%) scale(1);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        animation: dg-void-use 1.6s ease-in-out infinite;
+    }
+    @keyframes dg-void-use {
+        0%, 100% { box-shadow: 0 0 22px rgba(91, 231, 255, 0.28); }
+        50%      { box-shadow: 0 0 40px rgba(91, 231, 255, 0.60); }
+    }
+    .demo-game .dg-void-use .key {
+        display: inline-grid;
+        place-items: center;
+        width: 22px; height: 22px;
+        border: 1px solid var(--cyan);
+        color: var(--cyan);
+        border-radius: 3px;
+        font-size: 11px;
+    }
+
+    /* --- skip --- */
+    .demo-game .dg-os-skip {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        z-index: 45;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--ash);
+        color: rgba(246, 236, 236, 0.7);
+        padding: 9px 14px;
+        font: 10px/1 "Courier New", monospace;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    .demo-game .dg-os-skip:hover { color: var(--cyan); border-color: var(--cyan); }
+
+    /* --- touch controls (shown only on coarse pointers) --- */
+    .demo-game .dg-void-touch { display: none; }
+    .demo-game .dg-void-touch.on {
+        display: block;
+        position: absolute;
+        inset: 0;
+        z-index: 42;
+    }
+    .demo-game .dg-void-stick {
+        position: absolute;
+        left: 22px;
+        bottom: 22px;
+        width: 108px; height: 108px;
+        border: 1px solid rgba(91, 231, 255, 0.35);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.32);
+        display: grid;
+        place-items: center;
+        touch-action: none;
+    }
+    .demo-game .dg-void-stick::after {
+        content: "";
+        position: absolute;
+        inset: 34%;
+        border: 1px dashed rgba(91, 231, 255, 0.20);
+        border-radius: 50%;
+    }
+    .demo-game .dg-void-stick i {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        background: rgba(91, 231, 255, 0.20);
+        border: 1px solid var(--cyan);
+        box-shadow: 0 0 16px rgba(91, 231, 255, 0.35);
+        transition: transform 0.08s linear;
+    }
+    .demo-game .dg-void-stick.live i { background: rgba(91, 231, 255, 0.35); }
+    /* the look pad is the whole right half, minus the stick's corner */
+    .demo-game .dg-void-look {
+        position: absolute;
+        right: 0; top: 0;
+        width: 55%; height: 100%;
+        touch-action: none;
+    }
+
+    /* ############################################################
+       #   OS BOOT STAGE                                           #
+       #   Firmware POST → kernel ring buffer → splash → desktop.  #
+       ############################################################ */
+    .demo-game .dg-os {
+        padding: 0;
+        background: #02040a;
+        overflow: hidden;
+    }
+    .demo-game .dg-os-crt {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background:
+            radial-gradient(ellipse at 50% 45%, rgba(20, 60, 80, 0.22), transparent 70%),
+            #02040a;
+    }
+    .demo-game .dg-os-phase {
+        position: absolute;
+        inset: 0;
+        display: none;
+        overflow: hidden;
+    }
+    .demo-game .dg-os-phase.on { display: block; animation: dg-os-in 0.3s ease both; }
+    @keyframes dg-os-in { from { opacity: 0; } to { opacity: 1; } }
+
+    /* --- phase 1 : firmware POST --- */
+    .demo-game .dg-os-post {
+        padding: 6vh 6vw;
+        color: var(--amber);
+        font: 13px/1.75 "Courier New", monospace;
+        letter-spacing: 0.06em;
+        text-shadow: 0 0 8px rgba(255, 196, 107, 0.35);
+    }
+    .demo-game .dg-os-post pre { margin: 0; white-space: pre-wrap; }
+
+    /* --- phase 2 : kernel ring buffer --- */
+    .demo-game .dg-os-kernel {
+        padding: 3vh 4vw;
+        overflow-y: auto;
+        color: var(--bone);
+        font: 12px/1.65 "Courier New", monospace;
+    }
+    .demo-game .dg-os-kernel pre { margin: 0; white-space: pre-wrap; }
+    .demo-game .dg-os-kernel .kl {
+        display: block;
+        color: rgba(246, 236, 236, 0.72);
+        animation: dg-os-line 0.2s ease both;
+    }
+    @keyframes dg-os-line { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+    .demo-game .dg-os-kernel .kl.ok   { color: var(--good); }
+    .demo-game .dg-os-kernel .kl.warn { color: var(--amber); }
+    .demo-game .dg-os-kernel .kl.bad  {
+        color: var(--blood);
+        text-shadow: 0 0 8px rgba(255, 51, 51, 0.45);
+    }
+
+    /* --- phase 3 : graphical splash --- */
+    .demo-game .dg-os-splash {
+        display: none;
+        place-content: center;
+        justify-items: center;
+        gap: 4px;
+        text-align: center;
+    }
+    .demo-game .dg-os-splash.on { display: grid; }
+    .demo-game .dg-os-splash .os-mark {
+        position: relative;
+        width: 120px; height: 140px;
+        margin-bottom: 12px;
+    }
+    .demo-game .dg-os-splash .os-mark svg { width: 100%; height: 100%; }
+    .demo-game .dg-os-splash .os-shard {
+        filter: drop-shadow(0 0 6px rgba(91, 231, 255, 0.55));
+        animation: dg-os-shard 3.2s ease-in-out infinite;
+    }
+    @keyframes dg-os-shard {
+        0%, 100% { opacity: 0.85; }
+        45%      { opacity: 0.35; }
+        47%      { opacity: 1; }
+    }
+    .demo-game .dg-os-splash .os-ring {
+        position: absolute;
+        inset: -22px;
+        border-radius: 50%;
+        border: 1px dashed rgba(91, 231, 255, 0.22);
+        animation: dg-os-spin 9s linear infinite;
+    }
+    .demo-game .dg-os-splash .os-ring i {
+        position: absolute;
+        top: -3px; left: 50%;
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 10px var(--cyan);
+    }
+    @keyframes dg-os-spin { to { transform: rotate(360deg); } }
+    .demo-game .dg-os-splash .os-word {
+        font: 700 30px/1 "Courier New", monospace;
+        letter-spacing: 0.42em;
+        color: var(--bone);
+        text-shadow: 0 0 18px rgba(91, 231, 255, 0.4);
+    }
+    .demo-game .dg-os-splash .os-word span { color: var(--cyan); }
+    .demo-game .dg-os-splash .os-tagline {
+        font: 10px/1.6 "Courier New", monospace;
+        letter-spacing: 0.20em;
+        color: var(--ash);
+        text-transform: uppercase;
+        margin-top: 8px;
+    }
+    .demo-game .dg-os-splash .os-status {
+        margin-top: 18px;
+        font: 11px/1 "Courier New", monospace;
+        letter-spacing: 0.18em;
+        color: var(--cyan);
+        text-transform: uppercase;
+        min-height: 12px;
+    }
+    .demo-game .dg-os-splash .os-progress {
+        margin-top: 12px;
+        width: min(320px, 70vw);
+        height: 2px;
+        background: rgba(91, 231, 255, 0.14);
+        overflow: hidden;
+    }
+    .demo-game .dg-os-splash .os-progress i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
+        box-shadow: 0 0 10px rgba(91, 231, 255, 0.6);
+        transition: width 0.5s ease;
+    }
+
+    /* --- phase 4 : desktop shell --- */
+    .demo-game .dg-os-shell .os-wall {
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse at 70% 30%, rgba(91, 231, 255, 0.10), transparent 60%),
+            radial-gradient(ellipse at 20% 80%, rgba(184, 144, 255, 0.10), transparent 60%),
+            repeating-linear-gradient(0deg, rgba(91,231,255,0.05) 0 1px, transparent 1px 46px),
+            repeating-linear-gradient(90deg, rgba(91,231,255,0.05) 0 1px, transparent 1px 46px),
+            linear-gradient(160deg, #061019, #02060c);
+    }
+    .demo-game .dg-os-shell .os-panel {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 0 12px;
+        background: rgba(3, 8, 14, 0.85);
+        border-bottom: 1px solid rgba(91, 231, 255, 0.20);
+        font: 10px/1 "Courier New", monospace;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--cyan);
+    }
+    .demo-game .dg-os-shell .os-panel-mid { color: rgba(246, 236, 236, 0.6); }
+    .demo-game .dg-os-shell .os-tray { display: inline-flex; gap: 8px; align-items: center; }
+    .demo-game .dg-os-shell .os-chip {
+        border: 1px solid rgba(91, 231, 255, 0.3);
+        padding: 3px 7px;
+        color: rgba(246, 236, 236, 0.75);
+    }
+    .demo-game .dg-os-shell .os-chip.warn { color: var(--amber); border-color: rgba(255, 196, 107, 0.4); }
+
+    .demo-game .dg-os-shell .os-dock {
+        position: absolute;
+        left: 10px; top: 50%;
+        transform: translateY(-50%);
+        display: grid;
+        gap: 8px;
+        list-style: none;
+        margin: 0; padding: 8px 6px;
+        background: rgba(3, 8, 14, 0.6);
+        border: 1px solid rgba(91, 231, 255, 0.16);
+        border-radius: 6px;
+    }
+    .demo-game .dg-os-shell .os-ico {
+        width: 32px; height: 32px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(91, 231, 255, 0.18);
+        border-radius: 4px;
+        color: rgba(91, 231, 255, 0.55);
+        font-size: 13px;
+        background: rgba(91, 231, 255, 0.04);
+    }
+    .demo-game .dg-os-shell .os-ico.alice { color: var(--blood); border-color: rgba(255, 51, 51, 0.3); }
+    .demo-game .dg-os-shell .os-ico.active {
+        color: var(--cyan);
+        border-color: var(--cyan);
+        box-shadow: 0 0 14px rgba(91, 231, 255, 0.35);
+    }
+
+    .demo-game .dg-os-shell .os-widgets {
+        position: absolute;
+        right: 12px; top: 42px;
+        display: grid;
+        gap: 8px;
+        width: 190px;
+    }
+    .demo-game .dg-os-shell .os-card {
+        background: rgba(3, 8, 14, 0.7);
+        border: 1px solid rgba(91, 231, 255, 0.18);
+        border-radius: 4px;
+        padding: 8px 10px;
+        font: 9px/1.5 "Courier New", monospace;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ash);
+    }
+    .demo-game .dg-os-shell .os-card .val { color: rgba(246, 236, 236, 0.7); letter-spacing: 0.06em; }
+    .demo-game .dg-os-shell .os-spark,
+    .demo-game .dg-os-shell .os-wave {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 28px;
+        margin: 6px 0 4px;
+    }
+    .demo-game .dg-os-shell .os-spark i {
+        flex: 1;
+        height: var(--h, 50%);
+        background: linear-gradient(180deg, var(--cyan), rgba(91, 231, 255, 0.2));
+    }
+    .demo-game .dg-os-shell .os-wave i {
+        flex: 1;
+        height: 30%;
+        background: var(--plum);
+        animation: dg-os-wave 1.1s ease-in-out infinite;
+    }
+    .demo-game .dg-os-shell .os-wave i:nth-child(2n)   { animation-delay: 0.12s; }
+    .demo-game .dg-os-shell .os-wave i:nth-child(3n)   { animation-delay: 0.24s; }
+    .demo-game .dg-os-shell .os-wave i:nth-child(4n+1) { animation-delay: 0.36s; }
+    @keyframes dg-os-wave {
+        0%, 100% { height: 22%; opacity: 0.55; }
+        50%      { height: 92%; opacity: 1; }
+    }
+
+    /* the terminal window the shell opens by itself */
+    .demo-game .dg-os-shell .os-win {
+        position: absolute;
+        left: 50%; top: 52%;
+        transform: translate(-50%, -50%) scale(0.9);
+        width: min(560px, 74%);
+        background: rgba(4, 8, 12, 0.95);
+        border: 1px solid rgba(91, 231, 255, 0.45);
+        border-radius: 5px;
+        box-shadow: 0 22px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(91, 231, 255, 0.15);
+        opacity: 0;
+        transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.2, .9, .3, 1.2);
+        overflow: hidden;
+    }
+    .demo-game .dg-os-shell .os-win.on {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .demo-game .dg-os-shell .os-win-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 10px;
+        background: rgba(91, 231, 255, 0.07);
+        border-bottom: 1px solid rgba(91, 231, 255, 0.25);
+        font: 10px/1 "Courier New", monospace;
+        letter-spacing: 0.14em;
+        color: var(--cyan);
+    }
+    .demo-game .dg-os-shell .os-dots { display: inline-flex; gap: 5px; }
+    .demo-game .dg-os-shell .os-dots i {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: rgba(91, 231, 255, 0.35);
+    }
+    .demo-game .dg-os-shell .os-dots i:first-child { background: var(--blood); }
+    .demo-game .dg-os-shell .os-win-body {
+        margin: 0;
+        padding: 12px 14px;
+        min-height: 150px;
+        max-height: 42vh;
+        overflow-y: auto;
+        font: 12.5px/1.65 "Courier New", monospace;
+        color: var(--bone);
+        white-space: pre-wrap;
+    }
+    .demo-game .dg-os-shell .os-win-body .ol { display: block; min-height: 1.2em; }
+    .demo-game .dg-os-shell .os-win-body .ps  { color: var(--blood); display: inline; }
+    .demo-game .dg-os-shell .os-win-body .cmd { color: var(--cyan); display: inline; }
+    .demo-game .dg-os-shell .os-win-body .ai  { color: var(--plum); }
+    .demo-game .dg-os-shell .os-win-body .sys { color: var(--ash); }
+
+    /* ---------- phones: bigger type, thumb-sized controls ---------- */
+    @media (max-width: 820px) {
+        /* Phone HUD stacks bottom-up in fixed slots so nothing collides:
+           skip 8 · stick 56..152 · compass|prompt 158 · legend 212.
+           The compass and the prompt share a slot on purpose — once you
+           are close enough to switch the terminal on, the waypoint has
+           done its job and JS hides it. */
+        .demo-game .dg-void-sub  { font-size: 13px; bottom: 30%; }
+        .demo-game .dg-void-help {
+            left: 50%;
+            transform: translateX(-50%) translateY(6px);
+            bottom: 218px;
+            text-align: center;
+            max-width: 88vw;
+            font-size: 10px;
+        }
+        .demo-game .dg-void-help.on { transform: translateX(-50%) translateY(0); }
+        .demo-game .dg-void-compass { bottom: 150px; }
+        .demo-game .dg-void-use {
+            top: auto;
+            bottom: 150px;
+            padding: 14px 18px;
+            min-height: 46px;
+        }
+        .demo-game .dg-void-use.on { transform: translate(-50%, 0) scale(1); }
+        .demo-game .dg-os-skip {
+            right: calc(8px + var(--safe-r));
+            bottom: calc(8px + var(--safe-b));
+            min-height: 40px;
+        }
+        .demo-game .dg-void-stick {
+            left: calc(16px + var(--safe-l));
+            bottom: calc(48px + var(--safe-b));
+            width: 96px; height: 96px;
+        }
+        .demo-game .dg-void-look { width: 50%; height: 78%; top: 8%; }
+
+        .demo-game .dg-os-post   { padding: 8vh 6vw; font-size: 11px; line-height: 1.7; }
+        .demo-game .dg-os-kernel { padding: 6vh 4vw; font-size: 9.5px; line-height: 1.6; }
+        .demo-game .dg-os-splash .os-mark { width: 84px; height: 98px; }
+        .demo-game .dg-os-splash .os-word { font-size: 20px; letter-spacing: 0.3em; }
+        .demo-game .dg-os-splash .os-tagline { font-size: 9px; max-width: 84vw; }
+        .demo-game .dg-os-shell .os-dock { display: none; }
+        .demo-game .dg-os-shell .os-widgets { display: none; }
+        .demo-game .dg-os-shell .os-win { width: calc(100% - 24px); top: 50%; }
+        .demo-game .dg-os-shell .os-win-body { font-size: 11.5px; min-height: 120px; max-height: 50vh; }
+        .demo-game .dg-os-shell .os-panel { font-size: 8.5px; letter-spacing: 0.10em; }
+    }
+
+    /* very short landscape: pull the HUD off the middle of the screen */
+    @media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+        .demo-game .dg-void-sub  { bottom: auto; top: 10px; font-size: 11px; }
+        .demo-game .dg-void-help { bottom: 8px; font-size: 9px; }
+        .demo-game .dg-void-compass { bottom: 8px; left: auto; right: 130px; transform: none; }
+        .demo-game .dg-void-use { bottom: 54px; }
+        .demo-game .dg-void-stick { width: 78px; height: 78px; bottom: 10px; }
+    }
+
+    /* Users who asked for less motion get the boot, not the light show. */
+    @media (prefers-reduced-motion: reduce) {
+        .demo-game .dg-os-splash .os-ring,
+        .demo-game .dg-os-splash .os-shard,
+        .demo-game .dg-os-shell .os-wave i,
+        .demo-game .dg-void-use.on,
+        .demo-game .dg-void-compass.urge { animation: none; }
+    }
+
+    /* While the player is at the desk the void behind it is dimmed and
+       pushed out of focus — present enough to catch movement, quiet
+       enough to read a file over. */
+    .demo-game.at-desk .dg-void > *:not(.dg-void-canvas) { display: none !important; }
+    .demo-game.at-desk .dg-void-canvas { filter: brightness(0.55) saturate(0.8); }
+
+    /* ############################################################
+       #   CRYSTAL-SHELL, LIVE                                     #
+       #   The desk stage reuses the boot splash's furniture on     #
+       #   purpose — same panel, same dock, same window chrome —    #
+       #   so the machine the player watched come up is visibly     #
+       #   the machine they end up using.                           #
+       ############################################################ */
+    .demo-game .dg-desk { padding: 0; background: transparent; }
+    .demo-game .dg-desk.on { display: block; }
+
+    /* the wallpaper is translucent: the void keeps showing through */
+    .demo-game .dg-desk > .os-wall {
+        position: absolute; inset: 0;
+        opacity: 0.9;
+        background:
+            radial-gradient(ellipse at 70% 30%, rgba(91, 231, 255, 0.10), transparent 60%),
+            radial-gradient(ellipse at 20% 80%, rgba(184, 144, 255, 0.10), transparent 60%),
+            repeating-linear-gradient(0deg, rgba(91,231,255,0.05) 0 1px, transparent 1px 46px),
+            repeating-linear-gradient(90deg, rgba(91,231,255,0.05) 0 1px, transparent 1px 46px),
+            linear-gradient(160deg, rgba(6,16,25,0.94), rgba(2,6,12,0.96));
+    }
+
+    /* --- top panel --- */
+    .demo-game .dg-desk > .os-panel {
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 34px;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; padding: 0 12px;
+        background: rgba(3, 8, 14, 0.9);
+        border-bottom: 1px solid rgba(91, 231, 255, 0.20);
+        font: 10px/1 "Courier New", monospace;
+        letter-spacing: 0.16em; text-transform: uppercase;
+        color: var(--cyan);
+        z-index: 40;
+    }
+    .demo-game .dg-desk .os-tray { display: inline-flex; gap: 8px; align-items: center; }
+    .demo-game .dg-desk .os-chip {
+        border: 1px solid rgba(91, 231, 255, 0.28);
+        padding: 4px 8px;
+        color: rgba(246, 236, 236, 0.8);
+        white-space: nowrap;
+    }
+    .demo-game .dg-desk .os-chip b { color: var(--ash); font-weight: 400; }
+    .demo-game .dg-desk .os-chip i { font-style: normal; }
+    .demo-game .dg-desk .os-chip i.ok   { color: var(--good); }
+    .demo-game .dg-desk .os-chip i.warn { color: var(--amber); }
+    .demo-game .dg-desk .os-chip i.bad  { color: var(--blood); text-shadow: 0 0 8px rgba(255,51,51,0.5); }
+    .demo-game .os-standup {
+        background: transparent;
+        border: 1px solid var(--ash);
+        color: var(--bone);
+        padding: 5px 10px;
+        font: inherit; letter-spacing: 0.14em;
+        cursor: pointer; white-space: nowrap;
+    }
+    .demo-game .os-standup:hover { border-color: var(--blood); color: var(--blood); }
+
+    /* --- dock --- */
+    .demo-game .dg-desk > .os-dock {
+        position: absolute; left: 10px; top: 50%;
+        transform: translateY(-50%);
+        display: grid; gap: 8px;
+        list-style: none; margin: 0; padding: 8px 6px;
+        background: rgba(3, 8, 14, 0.72);
+        border: 1px solid rgba(91, 231, 255, 0.18);
+        border-radius: 6px;
+        z-index: 40;
+    }
+    .demo-game .dg-desk .os-dock li { margin: 0; }
+    .demo-game .dg-desk .os-ico {
+        width: 38px; height: 38px;
+        display: grid; place-items: center;
+        border: 1px solid rgba(91, 231, 255, 0.18);
+        border-radius: 5px;
+        background: rgba(91, 231, 255, 0.04);
+        color: rgba(91, 231, 255, 0.6);
+        font: 14px/1 "Courier New", monospace;
+        cursor: pointer;
+        transition: color .15s, border-color .15s, background .15s, transform .12s;
+    }
+    .demo-game .dg-desk .os-ico:hover { color: var(--cyan); border-color: var(--cyan); transform: translateX(2px); }
+    .demo-game .dg-desk .os-ico.alice { color: var(--blood); border-color: rgba(255,51,51,0.32); }
+    .demo-game .dg-desk .os-ico.active {
+        color: var(--cyan); border-color: var(--cyan);
+        background: rgba(91, 231, 255, 0.12);
+        box-shadow: 0 0 14px rgba(91, 231, 255, 0.3);
+    }
+    .demo-game .dg-desk .os-ico.alice.active { color: var(--blood); border-color: var(--blood); box-shadow: 0 0 14px rgba(255,51,51,0.35); }
+
+    /* --- window layer --- */
+    .demo-game .os-winlayer { position: absolute; inset: 34px 0 0 62px; z-index: 30; }
+    .demo-game .os-window {
+        position: absolute;
+        width: min(620px, 76%);
+        height: min(430px, 74%);
+        display: flex; flex-direction: column;
+        background: rgba(4, 9, 14, 0.96);
+        border: 1px solid rgba(91, 231, 255, 0.34);
+        border-radius: 5px;
+        box-shadow: 0 20px 54px rgba(0,0,0,0.72);
+        overflow: hidden;
+        animation: os-win-in 0.22s cubic-bezier(.2,.9,.3,1.1) both;
+    }
+    @keyframes os-win-in { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+    .demo-game .os-window.focused {
+        border-color: rgba(91, 231, 255, 0.7);
+        box-shadow: 0 22px 60px rgba(0,0,0,0.78), 0 0 26px rgba(91,231,255,0.16);
+    }
+    .demo-game .os-window.dragging { animation: none; opacity: 0.94; }
+    .demo-game .os-window .os-win-bar {
+        flex: 0 0 auto;
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 10px;
+        background: rgba(91, 231, 255, 0.07);
+        border-bottom: 1px solid rgba(91, 231, 255, 0.22);
+        font: 10px/1 "Courier New", monospace;
+        letter-spacing: 0.14em; color: var(--cyan);
+        cursor: grab; user-select: none;
+        touch-action: none;
+    }
+    .demo-game .os-window.dragging .os-win-bar { cursor: grabbing; }
+    .demo-game .os-window .os-win-title { flex: 1 1 auto; }
+    .demo-game .os-window .win-close {
+        background: transparent; border: 0;
+        color: rgba(246,236,236,0.55);
+        font: 11px/1 "Courier New", monospace;
+        cursor: pointer; padding: 3px 5px;
+    }
+    .demo-game .os-window .win-close:hover { color: var(--blood); }
+    .demo-game .os-window .os-win-body {
+        flex: 1 1 auto; min-height: 0;
+        display: flex; flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* --- app :: terminal --- */
+    .demo-game .app-terminal .desk-out {
+        flex: 1 1 auto; min-height: 0; overflow-y: auto;
+        padding: 10px 12px;
+        font: 12.5px/1.55 "Courier New", monospace;
+        color: var(--bone);
+        overflow-wrap: anywhere;
+    }
+    .demo-game .app-terminal .desk-out .tl { display: block; white-space: pre-wrap; }
+    .demo-game .app-terminal .desk-out .tl.echo { color: var(--cyan); }
+    .demo-game .app-terminal .desk-out .tl.sys  { color: var(--ash); }
+    .demo-game .app-terminal .desk-out .tl.warn { color: var(--amber); }
+    .demo-game .app-terminal .desk-out .tl.bad  { color: var(--blood); }
+    .demo-game .app-terminal .desk-out .tl.ai   { color: var(--plum); font-style: italic; }
+    .demo-game .app-terminal .desk-in {
+        flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px;
+        border-top: 1px solid rgba(91, 231, 255, 0.22);
+        background: rgba(91, 231, 255, 0.03);
+    }
+    .demo-game .app-terminal .desk-in .ps { color: var(--blood); font: 12px/1 "Courier New", monospace; white-space: nowrap; }
+    .demo-game .app-terminal .desk-input {
+        flex: 1 1 auto; min-width: 0;
+        background: transparent; border: 0; outline: 0;
+        color: var(--bone); font: 13px/1.4 "Courier New", monospace;
+        caret-color: var(--cyan);
+    }
+
+    /* --- app :: files --- */
+    .demo-game .app-files .fm-bar {
+        flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+        padding: 7px 10px; border-bottom: 1px solid rgba(91,231,255,0.16);
+        font: 10.5px/1 "Courier New", monospace; color: var(--ash);
+    }
+    .demo-game .app-files .fm-up {
+        background: transparent; border: 1px solid rgba(91,231,255,0.3);
+        color: var(--cyan); cursor: pointer; padding: 3px 8px; font: inherit;
+    }
+    .demo-game .app-files .fm-path { color: var(--bone); letter-spacing: 0.06em; }
+    .demo-game .app-files .fm-list {
+        flex: 1 1 auto; min-height: 0; overflow-y: auto;
+        list-style: none; margin: 0; padding: 4px 0;
+        font: 12px/1.5 "Courier New", monospace;
+    }
+    .demo-game .app-files .fm-row {
+        display: grid; grid-template-columns: 20px 1fr auto;
+        align-items: center; gap: 8px;
+        padding: 5px 12px; cursor: pointer;
+    }
+    .demo-game .app-files .fm-row:hover { background: rgba(91,231,255,0.08); }
+    .demo-game .app-files .fm-row .ic { color: var(--cyan); }
+    .demo-game .app-files .fm-row .nm { color: var(--bone); }
+    .demo-game .app-files .fm-row .mt { color: var(--ash); font-size: 10px; }
+    .demo-game .app-files .fm-row.dir .nm { color: var(--cyan); }
+    .demo-game .app-files .fm-row.dev .ic { color: var(--plum); }
+    .demo-game .app-files .fm-row.broken .nm,
+    .demo-game .app-files .fm-row.broken .mt { color: var(--blood); }
+    .demo-game .app-files .fm-empty { padding: 10px 12px; color: var(--ash); font-size: 11px; }
+
+    /* --- app :: notepad --- */
+    .demo-game .app-editor .np-bar {
+        flex: 0 0 auto; padding: 7px 10px;
+        border-bottom: 1px solid rgba(91,231,255,0.16);
+        font: 10.5px/1 "Courier New", monospace; color: var(--bone);
+    }
+    .demo-game .app-editor .np-area {
+        flex: 1 1 auto; min-height: 0;
+        background: #04070a; border: 0; outline: 0; resize: none;
+        color: var(--slime); padding: 10px 12px;
+        font: 12.5px/1.6 "Courier New", monospace;
+        white-space: pre-wrap;
+    }
+    .demo-game .app-editor .np-area[readonly] { color: rgba(246,236,236,0.78); }
+    .demo-game .app-editor .np-foot {
+        flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+        gap: 8px; padding: 7px 10px;
+        border-top: 1px solid rgba(91,231,255,0.16);
+        font: 10px/1 "Courier New", monospace; color: var(--ash);
+    }
+    .demo-game .app-editor .np-save {
+        background: rgba(91,231,255,0.1); border: 1px solid var(--cyan);
+        color: var(--cyan); padding: 6px 12px; font: inherit;
+        letter-spacing: 0.14em; cursor: pointer;
+    }
+    .demo-game .app-editor .np-save:hover { background: var(--cyan); color: #04070a; }
+
+    /* --- app :: system (the room as controls) --- */
+    .demo-game .app-system .os-win-body { overflow-y: auto; padding: 10px; gap: 10px; }
+    .demo-game .sys-block {
+        border: 1px solid rgba(91,231,255,0.16);
+        border-radius: 3px; padding: 8px 10px; margin-bottom: 9px;
+        background: rgba(4,10,14,0.6);
+    }
+    .demo-game .sys-block .ttl {
+        display: block; font: 9px/1 "Courier New", monospace;
+        letter-spacing: 0.2em; text-transform: uppercase;
+        color: var(--ash); margin-bottom: 8px;
+    }
+    .demo-game .sys-row {
+        display: grid; grid-template-columns: 62px 1fr auto;
+        align-items: center; gap: 8px;
+        padding: 4px 0; border-bottom: 1px dotted rgba(91,231,255,0.10);
+        font: 11px/1.4 "Courier New", monospace;
+    }
+    .demo-game .sys-row b { font-weight: 400; color: rgba(246,236,236,0.85); }
+    .demo-game .sys-row i { font-style: normal; letter-spacing: 0.08em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .demo-game .sys-row i.up   { color: var(--good); }
+    .demo-game .sys-row i.down { color: var(--ash); }
+    .demo-game .sys-row i.loop { color: var(--blood); animation: desk-loop 1.4s steps(2) infinite; }
+    .demo-game .sys-row button {
+        background: transparent; border: 1px solid rgba(91,231,255,0.35);
+        color: var(--cyan); padding: 4px 9px; font: inherit;
+        letter-spacing: 0.1em; cursor: pointer; white-space: nowrap;
+    }
+    .demo-game .sys-row button:hover { background: var(--cyan); color: #04070a; }
+    .demo-game .sys-slider { width: calc(100% - 62px); vertical-align: middle; accent-color: #5be7ff; }
+    .demo-game .sys-val { font: 11px/1 "Courier New", monospace; color: var(--bone); margin-left: 8px; }
+    .demo-game .sys-meter {
+        height: 6px; background: rgba(255,51,51,0.12);
+        border: 1px solid var(--blood-soft); overflow: hidden; margin-bottom: 6px;
+    }
+    .demo-game .sys-meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--blood)); }
+
+    /* --- app :: logs --- */
+    .demo-game .app-logs .os-win-body { overflow-y: auto; padding: 10px; }
+    .demo-game .log-block { margin-bottom: 12px; }
+    .demo-game .log-block .ttl {
+        display: block; font: 9.5px/1 "Courier New", monospace;
+        letter-spacing: 0.16em; color: var(--cyan); margin-bottom: 5px;
+    }
+    .demo-game .log-block pre {
+        margin: 0; padding: 8px 10px;
+        background: rgba(0,0,0,0.35); border-left: 2px solid rgba(91,231,255,0.25);
+        font: 11px/1.5 "Courier New", monospace; color: rgba(246,236,236,0.8);
+        white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+
+    /* --- app :: alice --- */
+    .demo-game .alice-app { padding: 16px; font: 12.5px/1.7 "Courier New", monospace; }
+    .demo-game .alice-app .err { color: var(--blood); letter-spacing: 0.12em; }
+    .demo-game .alice-app .ok  { color: var(--good); letter-spacing: 0.12em; }
+    .demo-game .alice-app .sub { color: var(--ash); }
+    .demo-game .alice-app .line { color: var(--plum); font-style: italic; }
+
+    /* --- the one hint line, bottom-left --- */
+    .demo-game .os-hintbar {
+        position: absolute; left: 62px; bottom: 12px; right: 12px;
+        z-index: 35; pointer-events: none;
+        max-width: 560px;
+        padding: 8px 12px;
+        background: rgba(2, 8, 12, 0.72);
+        border-left: 2px solid var(--cyan-dim);
+    }
+    .demo-game .os-hintbar .ttl {
+        display: block; font: 9px/1 "Courier New", monospace;
+        letter-spacing: 0.2em; text-transform: uppercase; color: var(--ash);
+        margin-bottom: 4px;
+    }
+    .demo-game .os-hintbar p {
+        margin: 0; font: 11.5px/1.55 "Courier New", monospace;
+        color: rgba(246, 236, 236, 0.82);
+    }
+
+    /* the repair pane still slides over everything */
+    .demo-game .dg-desk .dg-editor {
+        left: 0; right: 0; bottom: 0; top: 34px;
+        width: auto; max-height: none;
+        transform: translateY(101%);
+        border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0;
+        z-index: 60;
+    }
+    .demo-game .dg-desk .dg-editor.open { transform: translateY(0); }
+
+    /* ---------- phones: windows tile, dock goes to the bottom ------- */
+    @media (max-width: 820px) {
+        .demo-game .dg-desk > .os-panel {
+            height: auto; flex-wrap: wrap; gap: 5px 8px;
+            padding: calc(6px + var(--safe-t)) 8px 6px;
+            font-size: 8.5px; letter-spacing: 0.06em;
+        }
+        .demo-game .dg-desk .os-menu { flex: 1 1 100%; }
+        .demo-game .dg-desk .os-panel-mid { display: none; }
+        /* the tray gets its own line, or the stand-up button runs off the
+           right edge of a 375 px panel */
+        .demo-game .dg-desk .os-tray {
+            flex: 1 1 100%;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+        .demo-game .dg-desk .os-chip { padding: 3px 6px; }
+        .demo-game .os-standup { min-height: 34px; padding: 5px 8px; }
+
+        .demo-game .dg-desk > .os-dock {
+            top: auto; bottom: calc(6px + var(--safe-b));
+            left: 50%; transform: translateX(-50%);
+            grid-auto-flow: column; gap: 6px;
+            padding: 6px;
+        }
+        .demo-game .dg-desk .os-ico { width: 44px; height: 44px; }
+        .demo-game .dg-desk .os-ico:hover { transform: none; }
+
+        /* one window at a time, filling the space between panel and dock */
+        .demo-game .os-winlayer { inset: 62px 0 64px 0; }
+        .demo-game .os-window {
+            left: 0 !important; top: 0 !important;
+            width: 100%; height: 100%;
+            border-left: 0; border-right: 0; border-radius: 0;
+        }
+        .demo-game .os-window .os-win-bar { cursor: default; padding: 10px; }
+        .demo-game .os-window .win-close { padding: 6px 10px; font-size: 13px; }
+        .demo-game .app-terminal .desk-input { font-size: 16px; }
+        .demo-game .app-terminal .desk-in { padding: 8px 10px; }
+        .demo-game .os-hintbar { left: 8px; right: 8px; bottom: 60px; max-width: none; }
+        .demo-game .os-hintbar p { font-size: 10.5px; }
+        .demo-game .dg-desk .dg-editor { top: 0; }
+        .demo-game .sys-row { grid-template-columns: 54px 1fr; grid-auto-rows: auto; }
+        .demo-game .sys-row button { grid-column: 1 / -1; min-height: 38px; }
+    }
+
+    /* The current objective, in Neikon's own words, above the compass.
+       One line, always visible once he is on his feet — the player should
+       never have to guess what they were doing. */
+    .demo-game .dg-void-objective {
+        position: absolute;
+        left: 50%;
+        bottom: calc(8% + 34px);
+        transform: translateX(-50%) translateY(4px);
+        z-index: 40;
+        max-width: min(620px, 88vw);
+        text-align: center;
+        font: 12px/1.5 "Courier New", monospace;
+        letter-spacing: 0.04em;
+        color: rgba(246, 236, 236, 0.9);
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.95);
+        opacity: 0;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        pointer-events: none;
+    }
+    .demo-game .dg-void-objective.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* a stamped plate read out in the void needs more room than a subtitle */
+    .demo-game .dg-void-sub.plate {
+        white-space: pre-wrap;
+        text-align: left;
+        background: rgba(2, 8, 12, 0.82);
+        border-left: 2px solid var(--cyan-dim);
+        padding: 12px 16px;
+        font-size: 13px;
+        max-width: min(560px, 90vw);
+    }
+
+    @media (max-width: 820px) {
+        .demo-game .dg-void-objective { bottom: 250px; font-size: 11px; }
+        .demo-game .dg-void-sub.plate { font-size: 11.5px; padding: 10px 12px; }
+    }
+
+    /* Alice's warning, on the frame he steps through the door. Louder than
+       any other line in the demo because it is the only one she gets out
+       in time — and it still is not enough. */
+    .demo-game .dg-void-sub.cry {
+        background: none;
+        border: 0;
+        padding: 0;
+        text-align: center;
+        font-size: clamp(20px, 4.4vw, 40px);
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        color: #fff;
+        text-shadow:
+            0 0 18px rgba(255, 51, 51, 0.9),
+            0 0 44px rgba(255, 51, 51, 0.55),
+            2px 0 0 rgba(0, 255, 255, 0.35),
+           -2px 0 0 rgba(255, 0, 170, 0.35);
+        animation: dg-cry 0.42s steps(3) 3;
+    }
+    @keyframes dg-cry {
+        0%, 100% { transform: translateX(-50%) scale(1); }
+        40%      { transform: translateX(-50%) scale(1.045) translateY(-3px); }
+        70%      { transform: translateX(-50%) scale(0.99) translateY(2px); }
+    }
+    /* while the ending runs, nothing else is on screen */
+    .demo-game .dg-void-lids { transition: height 0.34s cubic-bezier(.4,0,.2,1); }

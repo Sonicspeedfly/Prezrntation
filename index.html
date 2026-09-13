@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title data-i18n="page.title">NEICON // ALICE_CORE — Аварийный терминал</title>
+<title data-i18n="page.title">NEIKON // ALICE_CORE — Аварийный терминал</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -63,7 +63,7 @@
     <!-- top-left status -->
     <div class="boot-status">
         <span><span class="dot"></span><span data-i18n="boot.system_ready">SYSTEM&nbsp;READY</span></span>
-        <span>// NEICON :: ALICE_CORE</span>
+        <span>// NEIKON :: ALICE_CORE</span>
         <span>// ANTHOLOGY EP. 0</span>
     </div>
     <div class="boot-version" data-i18n="boot.version">v0.3.1-broken · playable pitch</div>
@@ -73,7 +73,7 @@
         <div class="boot-titleblock">
             <div class="boot-supratitle" data-i18n="boot.supratitle">// CRYSTALCORE STUDIO PRESENTS</div>
             <h1 class="boot-title" data-i18n="boot.title_html" data-i18n-html="1">terminal:<br>shattered</h1>
-            <div class="boot-subtitle" data-i18n="boot.subtitle">Episode 0 · NEICON :: пробуждение в мёртвой ОС</div>
+            <div class="boot-subtitle" data-i18n="boot.subtitle">Episode 0 · NEIKON :: пробуждение в мёртвой ОС</div>
         </div>
 
         <ul class="boot-menu" id="bootMenu">
@@ -85,138 +85,27 @@
         </ul>
     </div>
 
-    <!-- CrystalCore brand mark, bottom-right — full inline SVG, redrawn
-         to match the studio reference: a hand-drawn cluster of four
-         crystal shards (tall central spire, wider companion behind-left,
-         a small diamond above-right, a leaning shard at the base), all
-         pure white wireframe with internal facet lines and no fill.
-         The wordmark uses an SVG <text> with italic serif so it renders
-         identically across browsers/locales without depending on a
-         system font being present. -->
+    <!-- CrystalCore brand mark, bottom-right.
+
+         Both halves are the studio's own artwork, not a redraw: they are
+         cut out of assets/crystalcore-logo.svg by assets/build-brand.js,
+         which also wires up the animation. Rebuild after any change to
+         the source art:   node assets/build-brand.js
+
+         They stay external <img> rather than inline SVG because the
+         lettering alone is 145 sub-paths — inlining both would bury this
+         file under 120KB of trace data. Animation lives inside the SVGs
+         (CSS in <img>-embedded SVG still runs), so the crystals keep
+         drifting without any script here. -->
     <div class="boot-brand" aria-label="CrystalCore Studio">
         <span class="by">DEV BY</span>
         <div class="brand-lockup">
-            <svg id="bootBrand" class="brand-mark" viewBox="0 0 200 220"
-                 xmlns="http://www.w3.org/2000/svg" role="img"
-                 aria-label="CrystalCore Studio">
-                <!-- subtle halo plate behind the cluster -->
-                <g class="brand-halo" fill="none" stroke="#cdfdf3" stroke-width="0.5" opacity="0.18">
-                    <circle cx="100" cy="105" r="92" stroke-dasharray="1 9"/>
-                </g>
-                <!-- ============================================
-                     CLUSTER  —  4 shards in white wireframe, redrawn
-                     to match the reference: tall central hex-spire,
-                     small kite at upper-right, chunky leaning crystal
-                     at the base, and a quiet back companion behind.
-                     ============================================ -->
-                <g stroke="#f3fffd" stroke-width="1.6"
-                   stroke-linejoin="miter" stroke-linecap="round"
-                   fill="none" class="brand-shards">
-
-                    <!-- (A) BACK COMPANION crystal — slim, slightly behind central spire -->
-                    <g class="shard shard-a" opacity="0.78">
-                        <polygon points="70,58 82,46 96,58 90,150 78,160 64,148"/>
-                        <polyline points="70,58 82,68 96,58"/>
-                        <polyline points="82,46 82,68"/>
-                        <line x1="82" y1="68" x2="78" y2="160"/>
-                        <polyline points="64,148 78,138 90,150"/>
-                    </g>
-
-                    <!-- (B) CENTRAL TALL HEX SPIRE — hero crystal -->
-                    <g class="shard shard-b" stroke-width="1.85">
-                        <!-- outline: peak (top), shoulders, long parallel flanks, tapered foot -->
-                        <polygon points="108,22 92,42 100,160 110,184 124,158 130,40"/>
-                        <!-- top facet seam -->
-                        <polyline points="108,22 92,42"/>
-                        <polyline points="108,22 130,40"/>
-                        <line x1="92" y1="42" x2="130" y2="40"/>
-                        <!-- center spine all the way down -->
-                        <line x1="108" y1="22" x2="110" y2="184"/>
-                        <!-- bottom convergence facets -->
-                        <polyline points="100,160 110,170 124,158"/>
-                        <line x1="110" y1="170" x2="110" y2="184"/>
-                        <!-- right-flank hairline facet -->
-                        <line x1="130" y1="40" x2="124" y2="158" opacity="0.65"/>
-                    </g>
-
-                    <!-- (C) UPPER-RIGHT KITE/DIAMOND CRYSTAL — small, tilted -->
-                    <g class="shard shard-c" transform="rotate(-14 162 90)">
-                        <polygon points="162,52 176,70 170,108 160,120 150,102 154,68"/>
-                        <line x1="162" y1="52" x2="160" y2="120" stroke-width="1.3"/>
-                        <polyline points="150,102 162,92 176,70"/>
-                        <polyline points="154,68 162,76 162,52"/>
-                    </g>
-
-                    <!-- (D) CHUNKY LEANING CRYSTAL at the base, in front -->
-                    <g class="shard shard-d" transform="rotate(12 72 162)">
-                        <polygon points="40,150 56,138 84,150 92,176 70,184 46,178"/>
-                        <polyline points="40,150 66,162 84,150"/>
-                        <line x1="66" y1="162" x2="70" y2="184"/>
-                        <polyline points="56,138 66,154 84,150"/>
-                    </g>
-                </g>
-
-                <!-- =============================================
-                     SPARKLES around the cluster — tiny white dots
-                     and 4-point stars that twinkle and drift on
-                     independent timings.
-                     ============================================= -->
-                <g class="brand-sparkles" fill="#ffffff" stroke="none">
-                    <!-- small dots (radius .8 – 1.4), randomly placed -->
-                    <circle class="spk spk-1"  cx="32"  cy="64"  r="1.2"/>
-                    <circle class="spk spk-2"  cx="184" cy="44"  r="1.4"/>
-                    <circle class="spk spk-3"  cx="172" cy="142" r="1.1"/>
-                    <circle class="spk spk-4"  cx="22"  cy="124" r="0.9"/>
-                    <circle class="spk spk-5"  cx="48"  cy="32"  r="1.3"/>
-                    <circle class="spk spk-6"  cx="160" cy="20"  r="0.9"/>
-                    <circle class="spk spk-7"  cx="118" cy="200" r="1.2"/>
-                    <circle class="spk spk-8"  cx="34"  cy="190" r="1.0"/>
-                    <circle class="spk spk-9"  cx="186" cy="180" r="1.1"/>
-                    <circle class="spk spk-10" cx="100" cy="10"  r="1.3"/>
-                </g>
-                <!-- a couple of 4-point stars for extra spark.
-                     The outer <g> carries the SVG position; the inner
-                     animated <g> stays origin-(0,0) so CSS transform-
-                     origin: center works cleanly. -->
-                <g class="brand-stars" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round" fill="none">
-                    <g transform="translate(176 88)">
-                        <g class="star star-1">
-                            <line x1="-4" y1="0" x2="4"  y2="0"/>
-                            <line x1="0"  y1="-4" x2="0" y2="4"/>
-                            <line x1="-2.5" y1="-2.5" x2="2.5" y2="2.5" opacity="0.6"/>
-                            <line x1="-2.5" y1="2.5"  x2="2.5" y2="-2.5" opacity="0.6"/>
-                        </g>
-                    </g>
-                    <g transform="translate(28 96)">
-                        <g class="star star-2">
-                            <line x1="-3" y1="0" x2="3"  y2="0"/>
-                            <line x1="0"  y1="-3" x2="0" y2="3"/>
-                        </g>
-                    </g>
-                    <g transform="translate(64 22)">
-                        <g class="star star-3">
-                            <line x1="-3" y1="0" x2="3"  y2="0"/>
-                            <line x1="0"  y1="-3" x2="0" y2="3"/>
-                            <line x1="-2" y1="-2" x2="2" y2="2" opacity="0.5"/>
-                            <line x1="-2" y1="2"  x2="2" y2="-2" opacity="0.5"/>
-                        </g>
-                    </g>
-                </g>
-
-                <!-- periodic glint (top of the spire) -->
-                <g class="brand-glint" opacity="0">
-                    <line x1="108" y1="12" x2="114" y2="6"
-                          stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>
-                    <line x1="104" y1="18" x2="112" y2="18"
-                          stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/>
-                    <line x1="100" y1="14" x2="106" y2="22"
-                          stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"
-                          opacity="0.85"/>
-                </g>
-            </svg>
+            <img id="bootBrand" class="brand-mark"
+                 src="assets/brand-mark.svg" alt="" aria-hidden="true"
+                 width="78" height="95">
 
             <span class="brand-wordmark" aria-hidden="true">
-                <span class="w1">Crystal<span class="accent">Core</span></span>
+                <img class="brand-word" src="assets/brand-wordmark.svg" alt="">
                 <span class="w2">// Studio</span>
             </span>
         </div>
@@ -242,7 +131,7 @@
     <header class="topbar">
         <div class="tag">
             <span class="dot"></span>
-            <span>NEICON&nbsp;//&nbsp;ALICE_CORE&nbsp;—&nbsp;<span data-i18n="topbar.title">EMERGENCY&nbsp;PITCH&nbsp;TERMINAL</span></span>
+            <span>NEIKON&nbsp;//&nbsp;ALICE_CORE&nbsp;—&nbsp;<span data-i18n="topbar.title">EMERGENCY&nbsp;PITCH&nbsp;TERMINAL</span></span>
         </div>
         <div class="right">
             <span data-i18n="topbar.uptime">UPTIME</span>&nbsp;<span id="uptime">00:00:00</span>
@@ -263,7 +152,7 @@
         <button class="slide-btn"        data-slide="5" data-i18n="nav.slide_05">05 // РОАДМАП И БИЗНЕС</button>
 
         <div class="menu-foot">
-            <div>[ NEICON.exe ] <span data-i18n="menu.status">STATUS</span>:&nbsp;<span class="blink" data-i18n="menu.unstable">UNSTABLE</span></div>
+            <div>[ NEIKON.exe ] <span data-i18n="menu.status">STATUS</span>:&nbsp;<span class="blink" data-i18n="menu.unstable">UNSTABLE</span></div>
             <div>[ ALICE.core ]  <span data-i18n="menu.memory">MEMORY</span>:&nbsp;<span data-i18n="menu.fragmented">FRAGMENTED</span></div>
             <div>[ host_layer ] <span data-i18n="menu.reality">REALITY</span>:&nbsp;<span data-i18n="menu.null">NULL</span></div>
             <div style="margin-top:6px;" data-i18n="menu.controls_html" data-i18n-html="1">Управление: <span style="color:var(--blood)">←&nbsp;→</span> или <span style="color:var(--blood)">1..6</span></div>
@@ -293,7 +182,7 @@
         </div>
         <div class="alice-stream" id="aliceStream" aria-live="polite"></div>
         <div class="alice-input">
-            <span class="ps">neicon@void:~$</span>
+            <span class="ps">neikon@void:~$</span>
             <span style="color: var(--bone);" id="fakeCmd"></span>
             <span class="fake-caret"></span>
         </div>
@@ -332,174 +221,293 @@
     <!-- 2. DIFFICULTY -->
     <div class="dg-stage dg-diff" data-stage="diff">
         <h2 data-i18n="demo.diff.title">ВЫБЕРИ СЛОЖНОСТЬ</h2>
-        <p class="dg-diff-lead" data-i18n="demo.diff.lead_html" data-i18n-html="1">это не уровень в игре — это <strong>сколько ты готов узнать.</strong> один и тот же сюжет, три разных кадра восприятия.</p>
+        <!-- These are the Russian fallbacks the page shows before applyLocale()
+             runs; they must track the strings in js/10-i18n.js or the deck
+             advertises a game it no longer is. -->
+        <p class="dg-diff-lead" data-i18n="demo.diff.lead_html" data-i18n-html="1">это не сложность задач — это <strong>на каком языке ты готов их читать.</strong> одна и та же история, три синтаксиса.</p>
         <div class="dg-diff-cards">
             <button type="button" class="dg-diff-card easy" data-diff="easy">
                 <span class="dgtag" data-i18n="demo.diff.tag1">choice 01</span>
                 <h3 data-i18n="demo.diff.easy.name">EASY</h3>
-                <p data-i18n="demo.diff.easy.desc">Python-friendly. Половина сюжета, ошибки прощаются, призраки только пугают. Концовка «ты ушёл, не разобравшись».</p>
-                <span class="dgmeta" data-i18n="demo.diff.easy.meta">// без голоса · мягкие глитчи · полные хинты</span>
+                <p data-i18n="demo.diff.easy.desc">Python. Спокойный проход: комната прощает промахи, подсказки открыты сразу, призраки только пугают. Хватит, чтобы разобраться в истории.</p>
+                <span class="dgmeta" data-i18n="demo.diff.easy.meta">// Python · без голоса · подсказки открыты</span>
             </button>
             <button type="button" class="dg-diff-card medium" data-diff="medium">
                 <span class="dgtag" data-i18n="demo.diff.tag2">choice 02</span>
                 <h3 data-i18n="demo.diff.medium.name">MEDIUM</h3>
-                <p data-i18n="demo.diff.medium.desc_html" data-i18n-html="1">C++. Большая часть сюжета. Появляются <code>new</code> / <code>delete</code>, утечки, призраки трогают экран. Концовка с пробелами.</p>
-                <span class="dgmeta" data-i18n="demo.diff.medium.meta">// без голоса · агрессивные глитчи · хинты тускнеют</span>
+                <p data-i18n="demo.diff.medium.desc_html" data-i18n-html="1">C++. Тот же сюжет и те же шесть задач, но код строже, а комната отвечает жёстче: ошибка ломает геометрию всерьёз, и это видно из окна терминала.</p>
+                <span class="dgmeta" data-i18n="demo.diff.medium.meta">// C++ · геометрия ломается · подсказки с задержкой</span>
             </button>
             <button type="button" class="dg-diff-card hard" data-diff="hard">
                 <span class="dgtag" data-i18n="demo.diff.tag3">choice 03</span>
                 <h3 data-i18n="demo.diff.hard.name">HARD</h3>
-                <p data-i18n="demo.diff.hard.desc_html" data-i18n-html="1">Pure C. Весь сюжет. Голос Элис, <code>SIGSEGV</code>, прогресс стирается. Та концовка, ради которой игра написана.</p>
-                <span class="dgmeta" data-i18n="demo.diff.hard.meta">// голос синтезом · screen shake · хинты редкие</span>
+                <p data-i18n="demo.diff.hard.desc_html" data-i18n-html="1">Чистый Си. Голос Элис. Каждая ошибка остаётся в комнате до конца сеанса, подсказок почти нет — только то, что написано на опорах.</p>
+                <span class="dgmeta" data-i18n="demo.diff.hard.meta">// C · голос синтезом · тряска экрана · подсказки редкие</span>
             </button>
         </div>
     </div>
 
-    <!-- 3. GAME -->
-    <div class="dg-stage dg-game" data-stage="game">
-        <div class="dg-scene">
-            <div class="dg-room" aria-hidden="true">
-                <div class="dg-floor"></div>
-                <div class="dg-back-wall"></div>
-            </div>
-            <div class="dg-terminal">
-                <div class="dg-term-bar">
-                    <span>TTY :: /dev/alice  ::  uplink ✕</span>
-                    <span class="right" id="dgTermStatus">idle</span>
-                </div>
-                <div class="dg-screen" id="dgScreen" aria-live="polite"></div>
-            </div>
-            <form class="dg-prompt" id="dgForm" autocomplete="off" onsubmit="return false;">
-                <span class="ps">neicon@void:~$</span>
-                <input class="dg-input" id="dgInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="введи команду и Enter (попробуй: help)" data-i18n-placeholder="demo.input.placeholder">
-            </form>
+    <!-- ============================================================
+         3. VOID  —  first-person 3D awakening.
+         Neikon comes round lying in an empty space. A glitching door
+         hangs far off in the dark; the only real light is the terminal
+         standing ahead and to the right. The player walks there under
+         their own power (WASD + mouse, or joystick + drag on a phone)
+         and switches it on — that starts the OS boot below.
+         The scene is drawn by the VoidScene module in main.js straight
+         into this canvas with hand-written WebGL — no libraries, so the
+         pitch stays a single offline bundle.
+         ============================================================ -->
+    <div class="dg-stage dg-void" data-stage="void">
+        <canvas class="dg-void-canvas" id="dgVoidCanvas"></canvas>
 
-            <!-- Inline code editor (opens via `edit` / `tasks` command) -->
-            <div class="dg-editor" id="dgEditor" aria-hidden="true">
-                <div class="ed-bar">
-                    <span><span id="dgEdLang">EDITOR</span> :: <span class="ed-file" id="dgEdFile">/tmp/scratch.txt</span></span>
-                    <button type="button" class="ed-x" id="dgEdClose" data-i18n="demo.ed.close">esc · close</button>
+        <!-- eyelids: shut at first, blink open over the wake-up beat -->
+        <div class="dg-void-lids" id="dgVoidLids" aria-hidden="true">
+            <i class="lid top"></i>
+            <i class="lid bot"></i>
+        </div>
+
+        <!-- Alice / narration line during the wake-up -->
+        <div class="dg-void-sub" id="dgVoidSub" aria-live="polite"></div>
+
+        <!-- bottom-left control legend, swapped per input type -->
+        <div class="dg-void-help" id="dgVoidHelp">
+            <span class="k" data-i18n="demo.void.help_html" data-i18n-html="1">
+                <b>W A S D</b> — идти · <b>мышь</b> — осмотреться · <b>E</b> — включить
+            </span>
+        </div>
+
+        <!-- what Neikon is currently trying to do, one line, in his own
+             voice — never a quest marker -->
+        <div class="dg-void-objective" id="dgVoidObjective"></div>
+
+        <!-- waypoint chevron + distance so nobody gets lost in the dark -->
+        <div class="dg-void-compass" id="dgVoidCompass" aria-hidden="true">
+            <i class="arrow"></i>
+            <span class="dist" id="dgVoidDist">--</span>
+            <span class="tag" data-i18n="demo.void.compass">терминал</span>
+        </div>
+
+        <!-- proximity prompt -->
+        <button type="button" class="dg-void-use" id="dgVoidUse">
+            <span class="key">E</span>
+            <span data-i18n="demo.void.use">ВКЛЮЧИТЬ ТЕРМИНАЛ</span>
+        </button>
+
+        <!-- touch layer: left thumb walks, right thumb looks -->
+        <div class="dg-void-touch" id="dgVoidTouch" aria-hidden="true">
+            <div class="dg-void-stick" id="dgVoidStick"><i></i></div>
+            <div class="dg-void-look" id="dgVoidLook"></div>
+        </div>
+
+    </div>
+
+    <!-- ============================================================
+         4. OS BOOT  —  what the terminal does when Neikon wakes it.
+         Four scripted phases: open-firmware POST, a Linux-style kernel
+         ring buffer, a graphical splash, then a desktop shell that
+         launches the Terminal app and hands control to the game stage.
+         Driven by the OsBoot module in main.js.
+         ============================================================ -->
+    <div class="dg-stage dg-os" data-stage="osboot">
+        <div class="dg-os-crt">
+
+            <!-- phase 1 :: firmware -->
+            <section class="dg-os-phase dg-os-post" data-phase="post">
+                <pre id="dgOsPost"></pre>
+            </section>
+
+            <!-- phase 2 :: kernel ring buffer -->
+            <section class="dg-os-phase dg-os-kernel" data-phase="kernel">
+                <pre id="dgOsKernel"></pre>
+            </section>
+
+            <!-- phase 3 :: graphical splash -->
+            <section class="dg-os-phase dg-os-splash" data-phase="splash">
+                <div class="os-mark" aria-hidden="true">
+                    <svg viewBox="0 0 120 140">
+                        <defs>
+                            <linearGradient id="osg" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%"   stop-color="#cdfdf3"/>
+                                <stop offset="60%"  stop-color="#5be7ff"/>
+                                <stop offset="100%" stop-color="#b890ff"/>
+                            </linearGradient>
+                        </defs>
+                        <polygon class="os-shard" points="60,6 100,40 92,116 60,134 28,116 20,40"
+                                 fill="none" stroke="url(#osg)" stroke-width="1.6"/>
+                        <polyline class="os-shard" points="20,40 60,70 100,40" fill="none" stroke="url(#osg)" stroke-width="1"/>
+                        <polyline class="os-shard" points="28,116 60,70 92,116" fill="none" stroke="url(#osg)" stroke-width="1"/>
+                        <line class="os-shard" x1="60" y1="6" x2="60" y2="134" stroke="url(#osg)" stroke-width="0.8"/>
+                    </svg>
+                    <div class="os-ring"><i></i></div>
                 </div>
-                <div class="ed-prompt" id="dgEdPrompt">
-                    <span class="ed-tag" id="dgEdTag" data-i18n="demo.ed.tag">task</span>
-                    <span id="dgEdTitle" data-i18n="demo.ed.notask">— pick a task with the `edit` command</span>
-                </div>
-                <div class="ed-hint" id="dgEdHint"></div>
-                <div class="ed-code">
-                    <div class="ed-gutter" id="dgEdGutter"></div>
-                    <textarea class="ed-area" id="dgEdArea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
-                </div>
-                <div class="ed-foot">
-                    <span class="ed-status" id="dgEdStatus" data-i18n="demo.ed.statusIdle">// edit the code · then COMPILE &amp; RUN</span>
-                    <span class="ed-actions">
-                        <button type="button" id="dgEdReset" data-i18n="demo.ed.reset">↺ reset</button>
-                        <button type="button" id="dgEdHintBtn" title="техническая подсказка" data-i18n="demo.ed.hint" data-i18n-title="demo.ed.hint.title">? hint</button>
-                        <button type="button" id="dgEdHintNoobBtn" title="подсказка для жюри · подробное объяснение что вписать" data-i18n="demo.ed.hintNoob" data-i18n-title="demo.ed.hintNoob.title">?? для жюри</button>
-                        <button type="button" class="primary" id="dgEdRun" data-i18n="demo.ed.run">▶ compile &amp; run</button>
+                <div class="os-word">VOID<span>OS</span></div>
+                <div class="os-tagline" data-i18n="demo.os.splash.tag">// ядро 6.9.0-alice · графическая оболочка crystal-shell</div>
+                <div class="os-status" id="dgOsStatus">…</div>
+                <div class="os-progress"><i id="dgOsProgress"></i></div>
+            </section>
+
+            <!-- phase 4 :: desktop shell -->
+            <section class="dg-os-phase dg-os-shell" data-phase="shell">
+                <div class="os-wall" aria-hidden="true"></div>
+
+                <header class="os-panel">
+                    <span class="os-menu">◈ crystal-shell</span>
+                    <span class="os-panel-mid" id="dgOsPanelHost">alice_core@void</span>
+                    <span class="os-tray">
+                        <span class="os-chip warn" data-i18n="demo.os.shell.integrity">INTEGRITY 38%</span>
+                        <span class="os-chip" id="dgOsClock">--:--</span>
                     </span>
+                </header>
+
+                <ul class="os-dock" aria-hidden="true">
+                    <li class="os-ico files">▤</li>
+                    <li class="os-ico net">⚯</li>
+                    <li class="os-ico logs">☰</li>
+                    <li class="os-ico alice">♥</li>
+                    <li class="os-ico term active">▶_</li>
+                </ul>
+
+                <div class="os-widgets" aria-hidden="true">
+                    <div class="os-card">
+                        <span class="lbl" data-i18n="demo.os.shell.mem">ПАМЯТЬ</span>
+                        <div class="os-spark"><i style="--h:38%"></i><i style="--h:61%"></i><i style="--h:44%"></i><i style="--h:82%"></i><i style="--h:57%"></i><i style="--h:96%"></i><i style="--h:71%"></i></div>
+                        <span class="val">8192 MiB · 3 bad</span>
+                    </div>
+                    <div class="os-card">
+                        <span class="lbl" data-i18n="demo.os.shell.voice">ГОЛОСОВОЙ КАНАЛ</span>
+                        <div class="os-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                        <span class="val">/dev/alice · tty3</span>
+                    </div>
                 </div>
+
+                <!-- the terminal window the shell opens by itself -->
+                <div class="os-win" id="dgOsWin">
+                    <div class="os-win-bar">
+                        <span class="os-dots"><i></i><i></i><i></i></span>
+                        <span class="os-win-title">neikon@void — /bin/ash</span>
+                    </div>
+                    <pre class="os-win-body" id="dgOsWinBody"></pre>
+                </div>
+            </section>
+        </div>
+
+        <button type="button" class="dg-os-skip" id="dgOsSkip" data-i18n="demo.os.skip">пропустить загрузку ▸</button>
+    </div>
+
+    <!-- ============================================================
+         5. DESK  —  the game itself: VoidOS, worked from the chair.
+         The 3D scene keeps rendering behind this panel, so a pylon
+         coming on or something walking in from the door is visible
+         past the edges of the screen while you type.
+         ============================================================ -->
+    <!-- ============================================================
+         5. DESK  —  crystal-shell, live.
+         Same furniture as the boot splash on purpose: the machine the
+         player watched come up is the machine they now use. The dock
+         launches apps into #dgWinLayer, where they can be dragged,
+         focused and closed like any desktop. Everything here can also
+         be done from the terminal — the graphical layer exists so a
+         non-technical juror is never stuck at a blank prompt.
+         ============================================================ -->
+    <div class="dg-stage dg-desk" data-stage="desk">
+        <div class="os-wall" aria-hidden="true"></div>
+
+        <header class="os-panel">
+            <span class="os-menu">◈ crystal-shell</span>
+            <span class="os-panel-mid">alice_core@void</span>
+            <span class="os-tray">
+                <span class="os-chip" id="dgDeskAnomalyChip">
+                    <b data-i18n="demo.desk.anomaly">АНОМАЛИИ</b>&nbsp;<i id="dgMeterAnomalyVal">0 / 45</i>
+                </span>
+                <span class="os-chip" id="dgDeskVolumeChip">
+                    <b data-i18n="demo.desk.volume">ТОМ</b>&nbsp;<i id="dgMeterVolumeVal">degraded</i>
+                </span>
+                <span class="os-chip" id="dgDeskClock">--:--</span>
+                <button type="button" class="os-standup" id="dgDeskLeave"
+                        data-i18n="demo.desk.leave">встать ⏎ esc</button>
+            </span>
+        </header>
+
+        <!-- dock :: every app is also a shell command, and vice versa -->
+        <ul class="os-dock" id="dgDock" data-i18n-aria="demo.desk.dock.aria" aria-label="панель приложений">
+            <li><button type="button" class="os-ico" data-app="files"    data-i18n-title="demo.app.files"    title="Файлы">▤</button></li>
+            <li><button type="button" class="os-ico" data-app="editor"   data-i18n-title="demo.app.editor"   title="Блокнот">✎</button></li>
+            <li><button type="button" class="os-ico" data-app="system"   data-i18n-title="demo.app.system"   title="Система">◎</button></li>
+            <li><button type="button" class="os-ico" data-app="logs"     data-i18n-title="demo.app.logs"     title="Журналы">☰</button></li>
+            <li><button type="button" class="os-ico alice" data-app="alice" data-i18n-title="demo.app.alice" title="ALICE">♥</button></li>
+            <li><button type="button" class="os-ico term active" data-app="terminal" data-i18n-title="demo.app.terminal" title="Терминал">▶_</button></li>
+        </ul>
+
+        <!-- where windows live -->
+        <div class="os-winlayer" id="dgWinLayer"></div>
+
+        <!-- one line of orientation, bottom-left, follows real progress -->
+        <div class="os-hintbar" id="dgDeskNudge">
+            <span class="ttl" data-i18n="demo.desk.next">// с чего начать</span>
+            <p id="dgDeskNudgeText"></p>
+        </div>
+
+ -->
+ue">
+ar">
+pan>
+ton>
+div>
+pt">
+pan>
+pan>
+div>
+div>
+de">
+div>
+rea>
+div>
+ot">
+pan>
+ns">
+ton>
+ton>
+ton>
+ton>
+pan>
+div>
+div>
+
+        <!-- Inline code editor (opens via `edit` / `tasks` command) -->
+        <div class="dg-editor" id="dgEditor" aria-hidden="true">
+            <div class="ed-bar">
+                <span><span id="dgEdLang">EDITOR</span> :: <span class="ed-file" id="dgEdFile">/tmp/scratch.txt</span></span>
+                <button type="button" class="ed-x" id="dgEdClose" data-i18n="demo.ed.close">esc · close</button>
+            </div>
+            <div class="ed-prompt" id="dgEdPrompt">
+                <span class="ed-tag" id="dgEdTag" data-i18n="demo.ed.tag">task</span>
+                <span id="dgEdTitle" data-i18n="demo.ed.notask">— pick a task with the `edit` command</span>
+            </div>
+            <div class="ed-hint" id="dgEdHint"></div>
+            <div class="ed-code">
+                <div class="ed-gutter" id="dgEdGutter"></div>
+                <textarea class="ed-area" id="dgEdArea" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+            </div>
+            <!-- Build output. Everything printed here is machine vocabulary
+                 and stays untranslated; only the header label is localized,
+                 and the body must never get a data-i18n attribute or
+                 applyLocale would overwrite the diagnostic with a key. -->
+            <div class="ed-out-head" id="dgEdOutHead">
+                <span data-i18n="demo.ed.diag.head">build output</span>
+                <span class="ed-out-cmd" id="dgEdOutCmd"></span>
+            </div>
+            <div class="ed-out" id="dgEdOut" aria-live="polite"></div>
+            <div class="ed-foot">
+                <span class="ed-status" id="dgEdStatus" data-i18n="demo.ed.statusIdle">// edit the code · then COMPILE &amp; RUN</span>
+                <span class="ed-actions">
+                    <button type="button" id="dgEdReset" data-i18n="demo.ed.reset">↺ reset</button>
+                    <button type="button" id="dgEdHintBtn" title="техническая подсказка" data-i18n="demo.ed.hint" data-i18n-title="demo.ed.hint.title">? hint</button>
+                    <button type="button" id="dgEdHintNoobBtn" title="подсказка для жюри · подробное объяснение что вписать" data-i18n="demo.ed.hintNoob" data-i18n-title="demo.ed.hintNoob.title">?? для жюри</button>
+                    <button type="button" class="primary" id="dgEdRun" data-i18n="demo.ed.run">▶ compile &amp; run</button>
+                </span>
             </div>
         </div>
-        <aside class="dg-side" aria-label="игровой HUD" data-i18n-aria="demo.hud.aria">
-            <div class="dg-side-head">
-                <span class="ttl" data-i18n="demo.hud.session">// сеанс</span>
-                <span class="dg-diff-badge" id="dgDiffBadge">EASY</span>
-            </div>
-            <div class="dg-stats">
-                <div class="dg-stat sanity">
-                    <span class="lbl" data-i18n="demo.hud.sanity">SANITY</span>
-                    <span class="val" id="dgSanity">100</span>
-                    <div class="dg-bar" style="color: var(--cyan)"><i id="dgSanityBar" style="width:100%"></i></div>
-                </div>
-                <div class="dg-stat fear">
-                    <span class="lbl" data-i18n="demo.hud.fear">FEAR</span>
-                    <span class="val" id="dgFear">0</span>
-                    <div class="dg-bar" style="color: var(--blood)"><i id="dgFearBar" style="width:0%"></i></div>
-                </div>
-            </div>
-            <!-- HINT MODE toggle :: Normal vs Jury walk-through.
-                 NORMAL = atmospheric in-character hints. JURY = explicit
-                 step-by-step walkthrough that a non-coder (the judges)
-                 can literally follow without understanding the lore. -->
-            <div class="dg-hintmode" id="dgHintMode" role="group" aria-label="режим подсказок" data-i18n-aria="demo.hintmode.aria">
-                <span class="lbl" data-i18n="demo.hintmode.label">// hint mode</span>
-                <button type="button" data-mode="normal" class="on" title="игровые подсказки в характере" data-i18n="demo.hintmode.normal" data-i18n-title="demo.hintmode.normal.title">NORMAL</button>
-                <button type="button" data-mode="jury"   title="пошаговая инструкция для зрителя"        data-i18n="demo.hintmode.jury"   data-i18n-title="demo.hintmode.jury.title">JURY</button>
-            </div>
-            <div class="dg-hint" id="dgHint">
-                <span class="hint-tag" data-i18n="demo.hud.hint">// подсказка</span>
-                <span id="dgHintText" data-i18n="demo.hud.hintInit_html" data-i18n-html="1">ты в темноте. перед тобой — терминал. он ждёт. попробуй ввести <span class="hint-cmd">help</span>.</span>
-            </div>
-            <!-- Walkthrough (jury mode only) :: shows the canonical path
-                 through the demo so a non-coder can finish it. The list
-                 is decorated by JS (.now for current step, .done for
-                 completed) as the player advances along WALK_STEPS. -->
-            <div class="dg-walk" id="dgWalk" aria-label="пошаговое прохождение" data-i18n-aria="demo.walk.aria">
-                <span class="ttl" data-i18n="demo.walk.title">// пошагово · jury walk</span>
-                <ol id="dgWalkList">
-                    <li data-step="help"    class="now" data-i18n="demo.walk.help_html"     data-i18n-html="1">введи <code>help</code> — посмотри список команд</li>
-                    <li data-step="look"               data-i18n="demo.walk.look_html"     data-i18n-html="1">введи <code>look</code> — оглядеться, найти зацепку</li>
-                    <li data-step="read"               data-i18n="demo.walk.read_html"     data-i18n-html="1">введи <code>read /var/log</code> — последние слова ALICE</li>
-                    <li data-step="status"             data-i18n="demo.walk.status_html"   data-i18n-html="1">введи <code>status</code> — что сломано в модулях</li>
-                    <li data-step="tasks"              data-i18n="demo.walk.tasks_html"    data-i18n-html="1">введи <code>tasks</code> — увидеть оба задания</li>
-                    <li data-step="edit"               data-i18n="demo.walk.edit_html"     data-i18n-html="1">введи <code>edit</code> — открыть код-редактор</li>
-                    <li data-step="hint"               data-i18n="demo.walk.hint_html"     data-i18n-html="1">нажми <code>? hint</code> или <code>?? для жюри</code> — что вписать</li>
-                    <li data-step="compile"            data-i18n="demo.walk.compile_html"  data-i18n-html="1">кнопка <code>▶ compile &amp; run</code> — починить функцию</li>
-                    <li data-step="edit2"              data-i18n="demo.walk.edit2_html"    data-i18n-html="1">снова <code>edit</code> — открой вторую задачу</li>
-                    <li data-step="compile2"           data-i18n="demo.walk.compile2_html" data-i18n-html="1">второй <code>compile &amp; run</code> — починить leak</li>
-                    <li data-step="recall"             data-i18n="demo.walk.recall_html"   data-i18n-html="1">введи <code>recall alice</code> — вернуть ALICE домой</li>
-                    <li data-step="exit"               data-i18n="demo.walk.exit_html"     data-i18n-html="1">введи <code>exit</code> — финал, истинная концовка</li>
-                </ol>
-            </div>
-            <div class="dg-log-mini" id="dgEvents" aria-label="журнал событий" data-i18n-aria="demo.hud.log"></div>
-
-            <!-- Quick-settings (mirrors slide-deck settings) -->
-            <div class="dg-quick" id="dgQuick">
-                <div class="qttl">
-                    <span data-i18n="demo.quick.title">// quick fx</span>
-                    <span style="opacity:0.55" data-i18n="demo.quick.sync">синк с настройками слайдов</span>
-                </div>
-                <div class="qrow">
-                    <span class="qlbl" data-i18n="demo.quick.scanlines">scanlines</span>
-                    <span class="qbtns" data-key="crt">
-                        <button type="button" data-val="on" data-i18n="demo.quick.on">on</button>
-                        <button type="button" data-val="dim" data-i18n="demo.quick.dim">dim</button>
-                        <button type="button" data-val="off" data-i18n="demo.quick.off">off</button>
-                    </span>
-                </div>
-                <div class="qrow">
-                    <span class="qlbl" data-i18n="demo.quick.vignette">vignette</span>
-                    <span class="qbtns" data-key="vignette">
-                        <button type="button" data-val="on" data-i18n="demo.quick.on">on</button>
-                        <button type="button" data-val="off" data-i18n="demo.quick.off">off</button>
-                    </span>
-                </div>
-                <div class="qrow">
-                    <span class="qlbl" data-i18n="demo.quick.ghosts">ghosts</span>
-                    <span class="qbtns" data-key="glitch">
-                        <button type="button" data-val="on" data-i18n="demo.quick.on">on</button>
-                        <button type="button" data-val="off" data-i18n="demo.quick.off">off</button>
-                    </span>
-                </div>
-                <div class="qrow">
-                    <span class="qlbl" data-i18n="demo.quick.sfx">sfx</span>
-                    <span class="qbtns" data-key="sfxOn">
-                        <button type="button" data-val="true" data-i18n="demo.quick.on">on</button>
-                        <button type="button" data-val="false" data-i18n="demo.quick.off">off</button>
-                    </span>
-                </div>
-                <div class="qrow" title="режим подсказок: tech — для программиста, для жюри — пошаговое объяснение что вписать" data-i18n-title="demo.quick.hint.title">
-                    <span class="qlbl" data-i18n="demo.quick.hints">подсказки</span>
-                    <span class="qbtns" data-key="hintMode">
-                        <button type="button" data-val="tech" data-i18n="demo.quick.tech">tech</button>
-                        <button type="button" data-val="noob" data-i18n="demo.quick.noob">для жюри</button>
-                    </span>
-                </div>
-                <div class="qnote" data-i18n="demo.quick.hotkeys_html" data-i18n-html="1">
-                    хоткеи: <code>↑/↓</code> история, <code>tab</code> автокомплит, <code>ctrl+l</code> clear, <code>ctrl+c</code> отмена.
-                </div>
-            </div>
-        </aside>
     </div>
 
     <!-- 4. END -->
@@ -514,8 +522,28 @@
     </div>
 </div>
 
-<script src="main.js" defer></script>
-
+<!-- Loaded in order; `defer` keeps that order and waits for the DOM.
+     Classic scripts on purpose — they share one global scope and work
+     from file:// without a server. See docs/ARCHITECTURE.md. -->
+<!-- Load order is the whole contract here — see docs/ARCHITECTURE.md.
+     These are classic scripts sharing one global lexical scope, not
+     modules: `defer` preserves document order regardless of which
+     folder each file lives in, so grouping them below by what they
+     belong to (core / presentation / demo) is purely organizational
+     and changes nothing about how the page runs. -->
+<script src="js/core/01-audio.js" defer></script>
+<script src="js/presentation/02-slides.js" defer></script>
+<script src="js/demo/03-alice-voice.js" defer></script>
+<script src="js/demo/04-void-scene.js" defer></script>
+<script src="js/demo/05-void-os.js" defer></script>
+<script src="js/demo/06-demo.js" defer></script>
+<script src="js/presentation/07-deck.js" defer></script>
+<script src="js/presentation/08-alice-lines.js" defer></script>
+<script src="js/presentation/09-alice-stream.js" defer></script>
+<script src="js/core/10-i18n.js" defer></script>
+<script src="js/core/11-settings.js" defer></script>
+<script src="js/demo/12-jury.js" defer></script>
+<script src="js/core/13-mobile.js" defer></script>
 
 <!-- ============================================================
      JURY CHECKLIST  —  collapsible side panel pinned to the right
