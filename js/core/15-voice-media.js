@@ -5,14 +5,16 @@
    line: the five jury-intro acts, the voice-path test in settings
    and the «Взаперти» extra. Ids match voice/catalog.json.
 
-   Source, per track:
-     1. a take recorded for the current language in the voice studio
-        (VOICE_CLIPS, refreshed live by 00-voice-sync.js);
-     2. otherwise the Russian web copy, assets/audio/ru/<id>.mp3 —
-        a long piece falls back rather than going silent, and the
+   Source, per track (sources()):
+     1. the take for the current language, assets/voice/<loc>/<id>.mp3
+        (VOICE_CLIPS, refreshed live by 00-voice-sync.js) — and once
+        more by its bare path if the first load fails;
+     2. otherwise the Russian take, assets/voice/ru/<id>.mp3, the same
+        way — a long piece falls back rather than going silent, and the
         caller is told which language actually plays so it can show
-        subtitles that match;
-     3. if that fails to load, the original in masters/.
+        subtitles that match, and why the others did not (h.skipped);
+     3. last, the Russian web copy assets/audio/ru/<id>.mp3 and the
+        original in masters/.
 
    Routing. Over http the element runs through Web Audio — the voice
    bus, so the settings slider rides it live, plus an analyser the
@@ -44,17 +46,31 @@
         }
         function isLocalFile() { return typeof location !== "undefined" && location.protocol === "file:"; }
 
-        /* -> [{ url, loc }] in the order to try */
+        /* -> [{ url, loc, retry? }] in the order to try. Every language,
+           Russian included, keeps its takes in assets/voice/<loc>/. A take
+           that fails is tried once more by its bare path — a fresh cache
+           key and no ?v= — before the player gives up on that language:
+           a browser that broke the first, cold load of a take (seen on the
+           presenter's Chrome with an audio-grabbing extension) otherwise
+           dropped straight to Russian. The old Russian web copy and its
+           master stay at the end as the last resort. */
         function sources(id) {
             const loc = locale();
             const out = [];
             const clips = (typeof VOICE_CLIPS !== "undefined" && VOICE_CLIPS) ? VOICE_CLIPS : {};
-            if (clips[loc] && clips[loc][id]) out.push({ url: clips[loc][id], loc: loc });
-            if (loc !== "ru" && clips.ru && clips.ru[id]) out.push({ url: clips.ru[id], loc: "ru" });
+            const take = function (l) {
+                const u = clips[l] && clips[l][id];
+                if (!u) return;
+                out.push({ url: u, loc: l });
+                if (!/^(data|blob):/.test(u)) out.push({ url: u.split("?")[0], loc: l, retry: true });
+            };
+            take(loc);
+            if (loc !== "ru") take("ru");
             out.push({ url: "assets/audio/ru/" + id + ".mp3", loc: "ru" });
             out.push({ url: "assets/audio/ru/masters/" + id + ".mp3", loc: "ru" });
             return out;
         }
+        const MEDIA_ERR = { 1: "загрузка прервана", 2: "сеть", 3: "не декодируется", 4: "адрес или формат не принят" };
 
         /* The language that will play, without loading anything —
            the intro needs it to pick subtitles before the first frame. */
@@ -110,6 +126,7 @@
 
             const h = {
                 id: id, loc: list[0].loc, bus: bus,
+                skipped: [],                       // "EN: why" for every source that did not load
                 get audio() { return a; },
                 get currentTime() { return a ? a.currentTime : 0; },
                 get duration() { return a && isFinite(a.duration) ? a.duration : 0; },
@@ -194,30 +211,52 @@
                 cleanup();
                 const w = warm[id];
                 delete warm[id];
-                if (w && w[URL_KEY] === s.url) a = w;
+                if (w && w[URL_KEY] === s.url && !w.error) a = w;   // a preload that already failed is not reused
                 else {
                     if (w) drop(w);                    // preloaded in another language
                     a = document.createElement("audio");
                     a.src = s.url;
                 }
                 a.preload = "auto";
-                a.onended = function () { finish("end"); };
+                /* One failure of one element moves the list on by exactly one.
+                   A source that will not load reports itself twice — the
+                   "error" event and the rejected play() — and each used to
+                   call tryNext(), so the next source was skipped unheard (a
+                   failed take jumped past its retry, or past the whole next
+                   language). An element already left behind can also report
+                   late; that must not move the list either. */
+                const el = a;
+                let failed = false;
+                const fail = function (why) {
+                    if (failed || el !== a || dead) return;
+                    failed = true;
+                    /* h.loc and url, not s: follow() may have moved this element on */
+                    h.skipped.push(h.loc.toUpperCase() + (s.retry && url === s.url ? " (повтор)" : "") + ": " + why);
+                    try { console.warn("[VoiceMedia] " + id + " · " + url + " — " + why); } catch (e) {}
+                    tryNext();
+                };
+                el.onended = function () { if (el === a) finish("end"); };
                 /* a take in the new language that will not load falls back
                    down the list (from the start) instead of ending the track */
-                a.onerror = function () { if (!started || switching) tryNext(); else finish("error", new Error("обрыв " + id)); };
-                a.onplaying = function () {
+                el.onerror = function () {
+                    if (el !== a) return;
+                    const why = el.error ? (MEDIA_ERR[el.error.code] || "код " + el.error.code) + (el.error.message ? " · " + el.error.message : "") : "ошибка";
+                    if (!started || switching) fail(why); else finish("error", new Error("обрыв " + id));
+                };
+                el.onplaying = function () {
+                    if (el !== a) return;
                     switching = false;
                     if (started) return;
                     started = true;
                     fakeT0 = performance.now();
-                    if (opts.onStart) try { opts.onStart({ loc: h.loc, duration: h.duration }); } catch (e) {}
+                    if (opts.onStart) try { opts.onStart({ loc: h.loc, duration: h.duration, skipped: h.skipped.slice() }); } catch (e) {}
                 };
-                route(a);
-                const p = a.play();
+                route(el);
+                const p = el.play();
                 if (p && p.catch) p.catch(function (err) {
-                    if (dead) return;
+                    if (dead || el !== a) return;
                     if (err && err.name === "NotAllowedError") finish("error", err);   // needs a user gesture
-                    else if (!started) tryNext();
+                    else if (!started) fail((err && err.name) || "play() отклонён");
                 });
             }
 

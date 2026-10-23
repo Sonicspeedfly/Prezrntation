@@ -10,7 +10,7 @@
    speech synthesis.
 
    Mode: file paths (small file, the studio swaps takes live)
-   Clips: 69  ·  source audio 25.33 MB
+   Clips: 76  ·  source audio 38.25 MB
 
    Part 0 of the deck's script, loaded first by index.html.
    These are classic scripts sharing one global lexical scope —
@@ -18,6 +18,15 @@
    ============================================================ */
 
     const VOICE_CLIPS = {
+        "ru": {
+            "jury_act1": "assets/voice/ru/jury_act1.mp3?v=1792727733037",
+            "jury_act2": "assets/voice/ru/jury_act2.mp3?v=1792727733073",
+            "jury_act3": "assets/voice/ru/jury_act3.mp3?v=1792727733098",
+            "jury_act4": "assets/voice/ru/jury_act4.mp3?v=1792727733123",
+            "jury_act5": "assets/voice/ru/jury_act5.mp3?v=1792727733148",
+            "secret_locked": "assets/voice/ru/secret_locked.mp3?v=1792727733208",
+            "voice_test": "assets/voice/ru/voice_test.mp3?v=1792727733179"
+        },
         "en": {
             "deck.bg01": "assets/voice/en/deck.bg01.mp3?v=1792641672933",
             "deck.bg02": "assets/voice/en/deck.bg02.mp3?v=1792641685071",
@@ -35,13 +44,13 @@
             "deck.slide03": "assets/voice/en/deck.slide03.mp3?v=1792641619531",
             "deck.slide04": "assets/voice/en/deck.slide04.mp3?v=1792641635019",
             "deck.slide05": "assets/voice/en/deck.slide05.mp3?v=1792641648398",
-            "jury_act1": "assets/voice/en/jury_act1.mp3?v=1792642260134",
-            "jury_act2": "assets/voice/en/jury_act2.mp3?v=1792642319493",
-            "jury_act3": "assets/voice/en/jury_act3.mp3?v=1792642362741",
-            "jury_act4": "assets/voice/en/jury_act4.mp3?v=1792642429218",
-            "jury_act5": "assets/voice/en/jury_act5.mp3?v=1792642469070",
-            "secret_locked": "assets/voice/en/secret_locked.mp3?v=1792642125353",
-            "voice_test": "assets/voice/en/voice_test.mp3?v=1792642091622"
+            "jury_act1": "assets/voice/en/jury_act1.mp3?v=1792727725650",
+            "jury_act2": "assets/voice/en/jury_act2.mp3?v=1792727725663",
+            "jury_act3": "assets/voice/en/jury_act3.mp3?v=1792727725672",
+            "jury_act4": "assets/voice/en/jury_act4.mp3?v=1792727725679",
+            "jury_act5": "assets/voice/en/jury_act5.mp3?v=1792727725682",
+            "secret_locked": "assets/voice/en/secret_locked.mp3?v=1792727725695",
+            "voice_test": "assets/voice/en/voice_test.mp3?v=1792727725704"
         },
         "tj": {
             "deck.bg01": "assets/voice/tj/deck.bg01.mp3?v=1792640770525",
@@ -60,13 +69,13 @@
             "deck.slide03": "assets/voice/tj/deck.slide03.mp3?v=1792640687977",
             "deck.slide04": "assets/voice/tj/deck.slide04.mp3?v=1792640724557",
             "deck.slide05": "assets/voice/tj/deck.slide05.mp3?v=1792640748002",
-            "jury_act1": "assets/voice/tj/jury_act1.mp3?v=1792642942621",
-            "jury_act2": "assets/voice/tj/jury_act2.mp3?v=1792642959218",
-            "jury_act3": "assets/voice/tj/jury_act3.mp3?v=1792642997142",
-            "jury_act4": "assets/voice/tj/jury_act4.mp3?v=1792643036054",
-            "jury_act5": "assets/voice/tj/jury_act5.mp3?v=1792643084208",
-            "secret_locked": "assets/voice/tj/secret_locked.mp3?v=1792643331172",
-            "voice_test": "assets/voice/tj/voice_test.mp3?v=1792643135756"
+            "jury_act1": "assets/voice/tj/jury_act1.mp3?v=1792727725711",
+            "jury_act2": "assets/voice/tj/jury_act2.mp3?v=1792727725724",
+            "jury_act3": "assets/voice/tj/jury_act3.mp3?v=1792727725732",
+            "jury_act4": "assets/voice/tj/jury_act4.mp3?v=1792727725742",
+            "jury_act5": "assets/voice/tj/jury_act5.mp3?v=1792727725747",
+            "secret_locked": "assets/voice/tj/secret_locked.mp3?v=1792727725765",
+            "voice_test": "assets/voice/tj/voice_test.mp3?v=1792727725779"
         },
         "tj_col": {
             "deck.bg01": "assets/voice/tj_col/deck.bg01.mp3?v=1792641339758",
@@ -85,12 +94,12 @@
             "deck.slide03": "assets/voice/tj_col/deck.slide03.mp3?v=1792641287649",
             "deck.slide04": "assets/voice/tj_col/deck.slide04.mp3?v=1792641301758",
             "deck.slide05": "assets/voice/tj_col/deck.slide05.mp3?v=1792641316627",
-            "jury_act1": "assets/voice/tj_col/jury_act1.mp3?v=1792642594784",
-            "jury_act2": "assets/voice/tj_col/jury_act2.mp3?v=1792642664518",
-            "jury_act3": "assets/voice/tj_col/jury_act3.mp3?v=1792642760145",
-            "jury_act4": "assets/voice/tj_col/jury_act4.mp3?v=1792642777174",
-            "jury_act5": "assets/voice/tj_col/jury_act5.mp3?v=1792642786953",
-            "secret_locked": "assets/voice/tj_col/secret_locked.mp3?v=1792643319773",
-            "voice_test": "assets/voice/tj_col/voice_test.mp3?v=1792643190192"
+            "jury_act1": "assets/voice/tj_col/jury_act1.mp3?v=1792727725789",
+            "jury_act2": "assets/voice/tj_col/jury_act2.mp3?v=1792727725805",
+            "jury_act3": "assets/voice/tj_col/jury_act3.mp3?v=1792727725814",
+            "jury_act4": "assets/voice/tj_col/jury_act4.mp3?v=1792727725823",
+            "jury_act5": "assets/voice/tj_col/jury_act5.mp3?v=1792727725827",
+            "secret_locked": "assets/voice/tj_col/secret_locked.mp3?v=1792727725842",
+            "voice_test": "assets/voice/tj_col/voice_test.mp3?v=1792727725854"
         }
     };

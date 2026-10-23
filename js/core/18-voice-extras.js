@@ -63,6 +63,11 @@
             if (tab !== "audio") { stopTest(); ui = null; return; }
             const slider = body && body.querySelector('input[data-skey="volVoice"]');
             if (!slider || typeof VoiceMedia === "undefined") return;
+            /* fetched as soon as the tab is open, the way the intro fetches
+               its acts: the test button and the slider's Shift+0 then start
+               a take that is already loading, not a cold one */
+            VoiceMedia.preload("voice_test");
+            VoiceMedia.preload("secret_locked");
             const box = document.createElement("div");
             box.className = "vt";
             box.innerHTML = '' +
@@ -89,6 +94,11 @@
             }
         }
         function say(msg) { const u = liveUi(); if (u) u.l2.textContent = msg; }
+        /* why the take in the chosen language did not play — shown in the
+           test line, so a fallback to another language is never silent */
+        function skippedNote(h) {
+            return h && h.skipped && h.skipped.length ? " · " + h.skipped.join(" · ") : "";
+        }
 
         function startTest() {
             if (test) return;
@@ -105,7 +115,7 @@
                 onError: function (err) {
                     if (test !== mine) return;
                     endTest(err && err.name === "NotAllowedError" ? tx("vt.blocked", "[ ERR ] браузер не дал звук — нажмите ещё раз")
-                                                                  : tx("vt.missing", "[ ERR ] запись теста не найдена"));
+                                                                  : tx("vt.missing", "[ ERR ] запись теста не найдена") + skippedNote(mine.handle));
                 }
             });
         }
@@ -122,7 +132,7 @@
                 }
                 if (u.wrap) { u.wrap.classList.add("vt-live"); u.wrap.style.setProperty("--vt-level", lv.toFixed(3)); }
                 u.l2.textContent = "[ " + (h.loc || "ru").toUpperCase() + " ] " + mmss(h.currentTime) + " / " + mmss(h.duration) +
-                                   " · " + tx("vt.level", "уровень") + " " + db(lv);
+                                   " · " + tx("vt.level", "уровень") + " " + db(lv) + skippedNote(h);
             }
             test.raf = requestAnimationFrame(loopTest);
         }
@@ -208,6 +218,8 @@
             const now = performance.now();
             clicks = clicks.filter(function (c) { return now - c < 700; });
             clicks.push(now);
+            /* the first click starts fetching the take: by the third it is loading */
+            if (clicks.length === 1 && typeof VoiceMedia !== "undefined") VoiceMedia.preload("secret_locked");
             if (clicks.length >= 3) { clicks = []; fireSecret("core"); }
         });
 
