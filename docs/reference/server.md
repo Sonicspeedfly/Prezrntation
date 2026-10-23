@@ -34,7 +34,7 @@ node serve.js [порт] [--open] [--no-guests] [--no-https] [--nip]
 
 Последовательность старта ([serve.js:957](../../serve.js#L957)):
 
-1. Загрузка модуля: `require` зависимостей из `voice/` и `tools/qr.js`, `HAS_FFMPEG = cues.hasFfmpeg()` (синхронный запуск `ffmpeg -version`), регистрация маршрутов `route(...)`, вычисление `OLLAMA` и `PIPER` (наличие файлов Piper проверяется один раз).
+1. Загрузка модуля: `require` зависимостей из `voice/` и `tools/qr.js`, `HAS_FFMPEG = cues.hasFfmpeg()` (синхронный запуск `ffmpeg -version`), регистрация маршрутов `route(...)`, вычисление `OLLAMA` и `PIPER` (`piperCheck()`; если Piper нет, `PIPER_FETCH` решает, качать ли его после старта).
 2. `server.listen(PORT, "0.0.0.0")`. Порт занят → обработчик `error` печатает «уже запущен», по `--open` открывает `http://localhost:PORT/` и выходит с кодом 0 через 300 мс.
 3. `lib.writeManifest()` — пересборка `js/core/00-voice-clips.js` без смены режима (файлы могли подложить руками).
 4. `listen80()` — второй HTTP-сервер на `:80` с тем же обработчиком; не вышло — ссылка несёт `:8779`.
@@ -182,7 +182,36 @@ POST /api/tts {text, mood, lang, engine}
 
 **Лимит гостей.** `eleven.guestChars` — сколько символов новых фраз гости уже озвучили через ElevenLabs за этот запуск. Лимит `guestBudget(c)` — 3000 по умолчанию (около дюжины реакций). Фраза, которая перешла бы лимит, идёт в Piper; фразы из кеша бесплатны всем. Ведущего лимит не касается.
 
-**Piper.** `PIPER` вычисляется при старте: `tools/piper/piper/piper.exe` (или `piper` вне Windows) и голос `tools/piper/voices/ru_RU-irina-medium.onnx`, частота — `audio.sample_rate` из соседнего `.onnx.json` (по умолчанию 22050). `piperSay(text, mood)` запускает `piper --model <голос> --output_raw --quiet` плюс четыре параметра настроения из `MOODS` (`--length_scale`, `--noise_scale`, `--noise_w`, `--sentence_silence`), рабочая папка — папка исполняемого файла, окно скрыто. В stdin — текст одной строкой (пробелы схлопнуты); из stdout — сырой PCM, который `wav(pcm, rate)` оборачивает в 44-байтный заголовок RIFF (PCM, моно, 16 бит). Процесс убивается через 30 с; ненулевой код или пустой вывод → ошибка с последними 300 символами stderr. Запуски выстроены в цепочку `ttsQueue`: Piper работает по одному.
+**Piper.** `PIPER` заполняет `piperCheck()` — при старте и ещё раз после фоновой загрузки: `tools/piper/piper/piper.exe` (или `piper` вне Windows) и голос `tools/piper/voices/ru_RU-irina-medium.onnx`, частота — `audio.sample_rate` из соседнего `.onnx.json` (по умолчанию 22050). `piperSay(text, mood)` запускает `piper --model <голос> --output_raw --quiet` плюс четыре параметра настроения из `MOODS` (`--length_scale`, `--noise_scale`, `--noise_w`, `--sentence_silence`), рабочая папка — папка исполняемого файла, окно скрыто. В stdin — текст одной строкой (пробелы схлопнуты); из stdout — сырой PCM, который `wav(pcm, rate)` оборачивает в 44-байтный заголовок RIFF (PCM, моно, 16 бит). Процесс убивается через 30 с; ненулевой код или пустой вывод → ошибка с последними 300 символами stderr. Запуски выстроены в цепочку `ttsQueue`: Piper работает по одному.
+
+**Загрузка Piper.** В репозитории Piper нет (`.gitignore`). Если при старте `tools/piper/` пуст, нет переопределений `PIPER_EXE`/`PIPER_VOICE` и флага `--no-piper-download` (`PIPER_FETCH`), после баннера `fetchPiper()` зовёт `ensurePiper()` из [tools/get-piper.js](../../tools/get-piper.js) — в том же процессе, асинхронно: сервер уже отвечает. Ход загрузки пишется в окно по ~10 %, по окончании `piperCheck()` перечитывает файлы — `PIPER.ok` становится `true` без перезапуска. Не скачалось — причина в окне, повтор при следующем запуске.
+
+`tools/get-piper.js` (модуль и команда `node tools/get-piper.js`):
+
+| Имя | Что |
+|---|---|
+| `ROOT`, `DIR` | корень проекта; `tools/piper/` |
+| `Readable` | из `stream`: `Readable.fromWeb()` делает из тела `fetch` поток Node, который пишется в файл |
+| `spawn` | из `child_process` — запуск `tar` |
+| `RELEASE` | `https://github.com/rhasspy/piper/releases/download/2023.11.14-2/` — Piper 1.2.0, тот же, что лежал в проекте |
+| `VOICE_URL`, `VOICE` | Hugging Face `rhasspy/piper-voices` v1.0.0, `ru_RU-irina-medium.onnx` (+ `.onnx.json`) |
+| `LOCK`, `LOCK_STALE_MS` | `tools/piper/.downloading` с pid; второй запуск в течение 30 мин не качает параллельно, более старая блокировка считается брошенной |
+| `build()` | имя архива под `process.platform`-`process.arch`: `piper_windows_amd64.zip`, `piper_linux_x86_64.tar.gz`, `piper_linux_aarch64.tar.gz`, `piper_linux_armv7l.tar.gz`; иначе `null`. macOS исключён намеренно: архивы `piper_macos_*` этого релиза без `.dylib` (внутри только отладочный dSYM), бинарник падает на «Library not loaded» — проверено просмотром `piper_macos_aarch64.tar.gz` |
+| `supported()` | есть ли для этой машины сборка; без неё `serve.js` не ставит `PIPER_FETCH` |
+| `runs(exe)` | пробный запуск `exe --version`: `""` — запустился, иначе причина (код ошибки ОС, последняя строка stderr, «не ответил за 15 с»). Файл, который ОС вообще не может исполнить, бросает исключение прямо из `spawn` — оно ловится отдельно |
+| `paths()` | `{ exe, voice, json }` — где `serve.js` ищет файлы |
+| `present()` | все три файла на месте |
+| `mb(n)` | байты → «12 МБ» для журнала |
+| `download(url, file, label, log)` | `fetch` со следованием редиректам (GitHub и Hugging Face отдают через CDN), поток в `<file>.part`, журнал по ~10 %; переименование только при совпадении с `Content-Length`, иначе `.part` удаляется и бросается ошибка |
+| `untar(archive, into)` | `tar -xf` — в Windows 10+ встроенный bsdtar читает и `.zip`; архив Piper содержит папку `piper/`, она и становится `tools/piper/piper/` |
+| `takeLock()`, `dropLock()` | блокировка от параллельной загрузки |
+| `ensurePiper(log)` | `{ ok }` или `{ ok: false, why }`, не бросает: пропускает уже скачанное, качает архив → распаковывает → удаляет архив → `chmod 755` вне Windows → `runs()`: не запустился — папка сборки удаляется и возвращается ошибка → описание голоса → голос |
+
+Пробный запуск — потому что «файлы на месте» ещё не значит «работает»: сборка без своих библиотек прошла бы `piperCheck()`, и каждая фраза падала бы уже на сцене.
+
+`start.sh` — тот же запуск для macOS и Linux: проверяет `node` и делает `exec node serve.js <порт> --open`. В git лежит с правом исполнения (`100755`); `.gitattributes` держит у `*.sh` переводы строк LF, у `*.bat` — CRLF: репозиторий коммитится из Windows, а `sh` со строками CRLF скрипт не запускает.
+
+Почему так: Piper — 98 МБ бинарников и модели, для git это балласт, а у GitHub лимит 100 МБ на файл и мягкий — на репозиторий. Качать при старте, а не отдельной установкой, — чтобы клон с GitHub заработал двойным щелчком по `start.bat`. В фоне, а не перед запуском — чтобы слабый канал не задерживал презентацию: Piper — запасной голос, он нужен, только когда нет ElevenLabs. Своя распаковка zip без зависимостей заняла бы сотни строк; `tar` уже есть в системе.
 
 | `MOODS` | `length_scale` (темп) | `noise_scale` | `noise_w` | `sentence_silence`, с | смысл |
 |---|---|---|---|---|---|
@@ -401,7 +430,8 @@ POST /api/tts {text, mood, lang, engine}
 | `ELEVEN_FILE` | `<домашняя папка>/.terminal-shattered/elevenlabs.json` | конфиг ElevenLabs вне проекта | `elevenConfig` |
 | `eleven` | `{ cooldownUntil: 0, why: "", guestChars: 0 }` | пауза после ошибки, её причина, потрачено гостями | `speakFor` пишет; `/api/tts/info` читает |
 | `MOOD_TAGS` | `crit`, `loop`, `ok`, `neutral` → тег Eleven v4 | настроение для ElevenLabs и список допустимых настроений | `elevenSay`, `speakFor`, `/api/tts/info` |
-| `PIPER` | `{ exe, voice, ok, rate, name }` | Piper и его голос; `ok` проверен при старте | `piperSay`, `speakFor`, `/api/tts/info`, баннер |
+| `PIPER` | `{ exe, voice, ok, rate, name }` | Piper и его голос; заполняет `piperCheck()` — при старте и после загрузки | `piperSay`, `speakFor`, `/api/tts/info`, баннер |
+| `PIPER_FETCH` | `boolean` | качать ли Piper после старта: файлов нет, путей в окружении нет, нет `--no-piper-download` | баннер («Piper качается»), запуск `fetchPiper()` |
 | `MOODS` | настроение → 4 параметра Piper | см. таблицу выше | `piperSay` |
 | `ttsQueue` | `Promise` | хвост цепочки запусков Piper | `speakFor` |
 | `ttsBusy` | `Set` IP | гость уже ждёт голос | `/api/tts` |
@@ -641,7 +671,7 @@ POST /api/tts {text, mood, lang, engine}
 
 **Порядок и состояние**
 
-- Всё, что проверяется один раз при старте, после изменения требует перезапуска: `HAS_FFMPEG` (поставили ffmpeg), `PIPER.ok` (положили Piper), `OLLAMA` (сменили `OLLAMA_HOST`), сертификат (`ensureTls` только при старте; обновится на следующем запуске). Конфиг ElevenLabs, наоборот, перечитывается на каждый запрос.
+- Всё, что проверяется один раз при старте, после изменения требует перезапуска: `HAS_FFMPEG` (поставили ffmpeg), `PIPER.ok` (положили Piper руками — фоновая загрузка, наоборот, включает его сама), `OLLAMA` (сменили `OLLAMA_HOST`), сертификат (`ensureTls` только при старте; обновится на следующем запуске). Конфиг ElevenLabs, наоборот, перечитывается на каждый запрос.
 - `eleven.guestChars` живёт в памяти: перезапуск сервера обнуляет лимит гостей.
 - `GET` и `POST /api/voice/manifest` — один путь, разные действия; `handleApi` различает их по методу. Новый маршрут с той же регуляркой и методом никогда не сработает: побеждает первый зарегистрированный.
 - Задание ведущего встаёт перед гостями, но не прерывает идущую генерацию гостя: ведущий ждёт не дольше одного гостевого ответа (`num_predict ≤ 200`).

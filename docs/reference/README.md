@@ -22,7 +22,7 @@
 | [void-os.md](void-os.md) | `js/demo/05-void-os.js` | VoidOS: файловая система, мир, `/etc/void.conf`, проверка кода игрока без компилятора, цепочка целей |
 | [demo.md](demo.md) | `js/demo/06-demo.js` | Движок демки: стадии, окна, редактор, сборка, команды, подсказки, ужасы, катсцена |
 | [sandbox.md](sandbox.md) | `js/core/20-ai-sandbox.js` | Полигон ALICE_CORE: мост к Ollama, стриминг, разбор ответа, симуляция без модели, языки |
-| [server.md](server.md) | `serve.js`, `tools/qr.js`, `start.bat` | Сервер: статика, доступ гостей, API студии, очередь Ollama, озвучка ElevenLabs/Piper, HTTPS через local-ip.sh, QR-кодировщик |
+| [server.md](server.md) | `serve.js`, `tools/qr.js`, `tools/get-piper.js`, `start.bat` | Сервер: статика, доступ гостей, API студии, очередь Ollama, озвучка ElevenLabs/Piper, HTTPS через local-ip.sh, QR-кодировщик |
 | [styles.md](styles.md) | `styles.css`, `styles-media.css` | Переменные, анимации, компоненты, порядок слоёв, телефонный режим, режимы доступности |
 | [build.md](build.md) | `assets/build-media.js`, `assets/build-brand.js`, `tools/doc-coverage.js` | Сборка веб-копий звука, пакета реплик и вариантов видео; генерация логотипов; проверка полноты справочника |
 

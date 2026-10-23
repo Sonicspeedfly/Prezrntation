@@ -558,15 +558,32 @@ function elevenSay(c, text, mood) {
    pace (length_scale), how loosely the voice is generated (noise_scale),
    how unevenly the sounds are timed (noise_w) and the pause after each
    sentence. Each mood sets those four; the page adds tremor, stutter and
-   echo in Web Audio. PIPER_EXE / PIPER_VOICE override the paths. */
-const PIPER = (() => {
+   echo in Web Audio. PIPER_EXE / PIPER_VOICE override the paths.
+
+   Piper is not in the repository: when tools/piper/ is empty, the
+   start-up below fetches it in the background (tools/get-piper.js)
+   and piperCheck() switches the voice on once the files are in — no
+   restart. --no-piper-download skips that. */
+const PIPER = {};
+function piperCheck() {
     const exe = process.env.PIPER_EXE || path.join(ROOT, "tools", "piper", "piper", process.platform === "win32" ? "piper.exe" : "piper");
     const voice = process.env.PIPER_VOICE || path.join(ROOT, "tools", "piper", "voices", "ru_RU-irina-medium.onnx");
     const ok = fs.existsSync(exe) && fs.existsSync(voice);
     let rate = 22050;
     try { rate = JSON.parse(fs.readFileSync(voice + ".json", "utf8")).audio.sample_rate || rate; } catch (e) {}
-    return { exe, voice, ok, rate, name: path.basename(voice, ".onnx") };
-})();
+    Object.assign(PIPER, { exe, voice, ok, rate, name: path.basename(voice, ".onnx") });
+}
+piperCheck();
+/* no Piper build that runs on macOS (tools/get-piper.js, build()) — nothing to fetch there */
+const PIPER_FETCH = !PIPER.ok && !process.env.PIPER_EXE && !process.env.PIPER_VOICE && !args.includes("--no-piper-download") &&
+                    require("./tools/get-piper").supported();
+function fetchPiper() {
+    console.log("  Piper: офлайн-голоса нет — качаю в фоне (~85 МБ, один раз); презентация уже работает");
+    require("./tools/get-piper").ensurePiper(m => console.log("  " + m)).then(r => {
+        piperCheck();
+        console.log(PIPER.ok ? "  Piper готов — офлайн-голос включён" : "  Piper не скачан: " + r.why + " (повторю при следующем запуске; вручную: node tools/get-piper.js)");
+    });
+}
 
 const MOODS = {
     /* panic: fast, unsteady, barely a breath between sentences */
@@ -986,11 +1003,12 @@ server.listen(PORT, "0.0.0.0", async () => {
     }
     const c = elevenConfig();
     console.log("  голос Элис без записи:  " + (c.apiKey ? "ElevenLabs (Milly Maple, " + c.model + ")" : "ElevenLabs не настроен") +
-                (PIPER.ok ? " → Piper офлайн" : ""));
+                (PIPER.ok ? " → Piper офлайн" : PIPER_FETCH ? " → Piper качается" : ""));
     console.log("  гости по QR:            " + (GUESTS ? "полигон и голос открыты (ElevenLabs — до " + guestBudget(c) + " символов)" : "закрыто (--no-guests)"));
     console.log("  записей в студии:       " + r.count + (r.inline ? " (вшиты)" : ""));
     if (r.unknown.length) console.log("  не распознаны по имени: " + r.unknown.join(", "));
     console.log("  окно не закрывать. остановить — Ctrl+C");
     console.log(line);
     if (OPEN) openBrowser(local);
+    if (PIPER_FETCH) fetchPiper();
 });

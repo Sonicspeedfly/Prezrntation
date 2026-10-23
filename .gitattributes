@@ -1,0 +1,5 @@
+# sh refuses a script with CRLF line ends ("bad interpreter"), and the
+# repository is committed from Windows: keep LF for shell scripts
+*.sh  text eol=lf
+# cmd.exe wants CRLF in .bat files
+*.bat text eol=crlf

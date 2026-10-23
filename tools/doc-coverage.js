@@ -35,7 +35,7 @@ const PAGES = {
     "docs/reference/void-os.md":    ["js/demo/05-void-os.js"],
     "docs/reference/demo.md":       ["js/demo/06-demo.js"],
     "docs/reference/sandbox.md":    ["js/core/20-ai-sandbox.js"],
-    "docs/reference/server.md":     ["serve.js", "tools/qr.js"],
+    "docs/reference/server.md":     ["serve.js", "tools/qr.js", "tools/get-piper.js"],
     "docs/reference/styles.md":     ["styles.css", "styles-media.css"],
     "docs/reference/build.md":      ["assets/build-media.js", "assets/build-brand.js", "tools/doc-coverage.js"]
 };
