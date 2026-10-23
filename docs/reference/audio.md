@@ -166,10 +166,18 @@ opts.clip и есть запись на текущем языке ──► play
 текст пустой                              ──►                   → false
 aliceHasRecording(текст) (запись дека)    ──►                   → false
 та же строка уже звучит                   ──►                   → false
-NeuralVoice.fits(язык)                    ──► speakNeural()     → true сразу
+NeuralVoice.fits(язык) и нет opts.synth  ──► speakNeural()     → true сразу
 иначе                                     ──► speakSynth()      → true / false
                      speakNeural не смог  ──► speakSynth(); если и он не смог — opts.onEnd()
 ```
+
+`opts.synth: true` — только голос браузера, без ElevenLabs и Piper. Его ставит
+WEB SPEECH полигона: без флага выбор «голос браузера» тратил кредиты ElevenLabs.
+
+`NeuralVoice.speak(text, opts)` принимает ещё `opts.speaker`: `"neikon"` —
+мысли Нейкона в демо (06-demo.js, `neikonSay`), голос Egor T. Для него нужен
+только ElevenLabs (`eleven()`), `fits()` и Piper не участвуют; на сервер уходит
+`speaker: "neikon"`.
 
 **Запись.** `playClip(id, opts)` берёт `VOICE_CLIPS[locale][id]`, захватывает шину как
 `"sample"` с перебиванием, глушит синтез (`hardStop()`), создаёт `<audio>` через
@@ -214,7 +222,7 @@ NeuralVoice.fits(язык)                    ──► speakNeural()     → tr
    | `engine` | Условие |
    |---|---|
    | `"elevenlabs"` | ключ ElevenLabs настроен (`info.elevenlabs.configured`) |
-   | `"piper"` | Piper найден и язык `ru` |
+   | `"piper"` | у Piper есть голос этого языка (`piperReads()`: `ru`, `en`; таджикского нет) |
    | `"auto"` / не задан | одно из двух |
 
 3. `speak(text, opts)`: `POST api/tts { text, mood, lang, engine }`. Движок, прочитавший
@@ -446,7 +454,7 @@ NeuralVoice.fits(язык)                    ──► speakNeural()     → tr
 | Имя | Значение / тип | Смысл | Кто пишет / кто читает |
 |---|---|---|---|
 | `NeuralVoice` | объект (IIFE) | Клиент `/api/tts` и эффекты настроения | `03`, `20` |
-| `info` | ответ `/api/tts/info` \| `{ none: true }` \| `null` | Что умеет сервер: `elevenlabs { configured, voice, model, paused, why }`, `piper`, `piperVoice`, `moods` | `check()`; читают `eleven()`, `piper()`, `status` |
+| `info` | ответ `/api/tts/info` \| `{ none: true }` \| `null` | Что умеет сервер: `elevenlabs { configured, voice, model, paused, why }`, `piper`, `piperVoices` (`{ ru, en }` → имя голоса), `moods` | `check()`; читают `eleven()`, `piper()`, `piperReads()`, `status` |
 | `checking` | `Promise \| null` | Запрос `check()` в полёте — повторные вызовы ждут его | `check()` |
 | `cur` | объект строки \| `null` | Текущая строка: `{ stopped, nodes, onEnd, src, an, fbuf, timer, playing, done }` | `speak()`, `finish()`, `stop()`; читают `level()`, `isSpeaking()` |
 | `lastEngine` | `""`, `"elevenlabs"`, `"piper"` | Кто прочёл последнюю строку | `speak()`; наружу `engine` |
@@ -741,7 +749,11 @@ NeuralVoice.fits(язык)                    ──► speakNeural()     → tr
 (`elevenlabs.paused`) не учитывается.
 
 #### `piper()` → `boolean`
-В `info` Piper найден.
+В `info` Piper найден (хотя бы с одним голосом).
+
+#### `piperReads(locale)` → `boolean`
+Piper найден и в `info.piperVoices` есть голос этого языка: `ru`, `en`. Таджикского голоса
+у Piper нет, поэтому `tj` и `tj_col` — `false`.
 
 #### `bases()` → `string[]`
 Куда спрашивать: `""` (сервер страницы) и, если порт страницы не совпадает,
@@ -829,7 +841,7 @@ RMS текущего звука по `getByteTimeDomainData`, в дБFS, шка�
 |---|---|
 | `ready` | `eleven() \|\| piper()` |
 | `engines` | `{ elevenlabs, piper }` — булевы |
-| `status` | `{ served, elevenlabs: info.elevenlabs \| null, piper, piperVoice }` — для выбора голоса в полигоне |
+| `status` | `{ served, elevenlabs: info.elevenlabs \| null, piper, piperVoices }` (`piperVoices` — `{}`, если сервер не ответил) — для выбора голоса в полигоне |
 | `engine` | `lastEngine` |
 | `note` | `lastNote` |
 | `isSpeaking()` | строка готовится или играет (`cur` есть и не закончена) |

@@ -1512,6 +1512,7 @@
             );
             elRoot.setAttribute("aria-hidden", "true");
             document.body.style.overflow = "";
+            neikonHush();
             window.__demoActive = false;
             // Restore slide-deck audio + chatter to whatever the user had.
             try {
@@ -1736,6 +1737,7 @@
                 return;
             }
             voidClearTimers();
+            neikonHush();                            // a replay starts from his first thought
             voidActive = true;
             arrivedHandled = false;
 
@@ -1819,10 +1821,64 @@
                 if (!elVoidSub || !voidActive) return;
                 elVoidSub.textContent = tx(key);
                 elVoidSub.classList.add("on");
+                neikonSay(tx(key));
                 voidLater(function () {
                     if (elVoidSub) elVoidSub.classList.remove("on");
                 }, hold);
             }, delay);
+        }
+
+        /* ---- Neikon's voice ---------------------------------------------
+           His thoughts — the wake-up lines, the objective, the desk's hint
+           line — read by ElevenLabs as Egor T (NeuralVoice, speaker
+           "neikon"). ElevenLabs or nothing: Piper's voices are female and
+           the browser's is anyone's, and a wrong voice is worse than the
+           silent text he had before. One line at a time and in order — a
+           thought that comes while he is still talking waits its turn (at
+           most three wait; past that the oldest goes): the wake-up lines
+           come 6.6 s apart and each takes about 7 s to say, and with a
+           single slot the objective replaced the third one unheard. He
+           never talks over Alice: a thought that comes while she speaks
+           stays text, and her next line cuts him off. */
+        let neikonLast = "";           // the last thought he was given (spoken or not)
+        let neikonBusy = false;        // his line is being made or playing
+        let neikonQueue = [];          // thoughts waiting for him to finish — oldest first
+
+        /* a trailing command (": run /home/neikon/recover.sh") and code marks
+           are for the eyes; read aloud they are noise */
+        function neikonSpoken(text) {
+            return String(text || "").replace(/:\s*[^:]*\/\S*\s*$/, "").replace(/`/g, "").trim();
+        }
+        function neikonSay(text) {
+            const s = neikonSpoken(text);
+            if (!/\p{L}/u.test(s) || s === neikonLast) return;
+            neikonLast = s;
+            if (neikonBusy) {
+                neikonQueue.push(s);
+                if (neikonQueue.length > 3) neikonQueue.shift();
+                return;
+            }
+            if (typeof NeuralVoice === "undefined" || !window.__demoActive) return;
+            if (typeof settingsState !== "undefined" && settingsState.sfxOn === false) return;
+            if (NeuralVoice.isSpeaking() || (typeof AliceVoice !== "undefined" && AliceVoice.isSpeaking())) return;
+            neikonBusy = true;
+            NeuralVoice.speak(s, {
+                speaker: "neikon",
+                lang: (typeof settingsState !== "undefined" && settingsState.locale) || "ru",
+                onEnd: function (natural) {
+                    neikonBusy = false;
+                    /* cut off (Alice, a stop) — what was waiting goes unsaid */
+                    if (!natural) { neikonQueue = []; return; }
+                    const next = neikonQueue.shift();
+                    if (next) { neikonLast = ""; neikonSay(next); }
+                }
+            }).then(function (started) { if (!started) { neikonBusy = false; neikonQueue = []; } });
+        }
+        function neikonHush() {
+            neikonQueue = [];
+            neikonLast = "";
+            if (neikonBusy && typeof NeuralVoice !== "undefined") NeuralVoice.stop();
+            neikonBusy = false;
         }
 
         let voidBestDist = 999;
@@ -1931,7 +1987,11 @@
                 VoidScene.setInteractable("gauge2", !!w.lamps.lamp1);
                 VoidScene.setInteractable("door", true);
             } catch (e) {}
-            if (elVoidObjective) elVoidObjective.textContent = VoidOS.questObjective();
+            if (elVoidObjective) {
+                elVoidObjective.textContent = VoidOS.questObjective();
+                /* said once it is on screen: before that the wake-up lines own his voice */
+                if (state.stage === "void" && elVoidObjective.classList.contains("on")) neikonSay(elVoidObjective.textContent);
+            }
         }
 
         function stopVoidStage() {
@@ -2841,7 +2901,11 @@
                 elMeterAnomalyVal.className = w.corruption > 44 ? "bad"
                                             : (w.corruption > 20 ? "warn" : "ok");
             }
-            if (elDeskNudgeText) elDeskNudgeText.textContent = deskNudge();
+            if (elDeskNudgeText) {
+                elDeskNudgeText.textContent = deskNudge();
+                /* this also runs while a run is being set up, before the void */
+                if (state.stage === "desk") neikonSay(elDeskNudgeText.textContent);
+            }
             if (elDeskClock) {
                 const d = new Date();
                 elDeskClock.textContent =

@@ -1,13 +1,16 @@
 #!/bin/sh
 # TERMINAL: SHATTERED - the launcher for macOS and Linux (start.bat on Windows):
 # presentation, voice studio, Alice's voice (ElevenLabs / Piper), Ollama bridge,
-# QR for the jury's phones. Piper is fetched by serve.js on the first start
-# (Linux; there is no working macOS build). Help: README.md
+# QR for the jury's phones. Piper is checked with a test phrase and fetched
+# if missing before the server starts (Linux; there is no working macOS
+# build). Help: README.md
 cd "$(dirname "$0")" || exit 1
 PORT="${1:-8779}"
 
 if command -v node >/dev/null 2>&1; then
-    exec node serve.js "$PORT" --open
+    # the server starts either way; this was the attempt for this run
+    node tools/get-piper.js
+    exec node serve.js "$PORT" --open --no-piper-download
 fi
 
 echo

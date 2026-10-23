@@ -281,7 +281,9 @@ playAliceVoice(p, {channel})
   │     src(MediaElementSource) → profile.buildGraph(ctx) → gain(gainMul) → voiceNode
   │  иначе: audio.volume = master×voice×gainMul, опрос громкости раз в 200 мс
   ├─ glitch-драйвер по GLITCH_PROFILES[settingsState.voiceGlitch]
-  └─ audio.play(); отказ → cleanup()
+  └─ audio.play(); не загрузилось до начала → retryOrEnd(): один повтор —
+     fetch(url) → blob: на тот же элемент; второй сбой, data:/blob:, отказ
+     NotAllowedError → cleanup()
 ```
 
 Два канала (`VOICE_PROFILES`):
@@ -319,8 +321,9 @@ playAliceVoice(p, {channel})
 Web Audio.
 
 Остановка: `stopCurrentVoice()` (снаружи, при смене реплики, при выключении звука)
-или `cleanup()` (по `ended`/`error`/`pause` после конца, отказ `play()`). Обе гасят
-таймеры, снимают `.glitch`, отключают **все** узлы графа.
+или `cleanup()` (по `ended`/`pause` после конца; по `error` и отказу `play()` — через
+`retryOrEnd()`, когда повторять уже нечего). Обе гасят таймеры, снимают `.glitch`,
+отключают **все** узлы графа.
 
 ### Циклы и гейты
 
@@ -505,6 +508,18 @@ Web Audio.
 27. **`styles-media.css` грузится неблокирующе.** В нём интро, плеер и тест голоса —
     до первого клика ничего из этого на экране нет, поэтому первый кадр его не ждёт
     ([index.html:8](../../index.html#L8)).
+
+28. **Запись, которая не загрузилась, пробуется ещё раз через `fetch` в `blob:`.**
+    У ведущего в Chrome стоит помощник загрузок («Скачать аудио с этой страницы»): он
+    перехватывает медиа-запросы страниц по `http`, но не `file://` — по `localhost`
+    строка появлялась и молчала, из `index.html` звучала. `blob:` не сетевой запрос,
+    его такой перехватчик не видит; тот же элемент — значит, граф и таймеры глитча не
+    строятся заново. Один повтор на реплику: сбой приходит дважды (`error` и отказ
+    `play()`) и считается один раз (`failedSrc`); после начала звука и для
+    `data:`/`blob:` повтора нет. Удачный повтор кладёт `blob:` в `deckWarm`, следующий
+    раз реплика берёт его сразу. В консоли — `[AliceVoice] <url> не загрузился —
+    повтор через fetch` ([09-alice-stream.js:640](../../js/presentation/09-alice-stream.js#L640)).
+    То же делает `VoiceMedia` для длинных дорожек (повтор по голому пути).
 
 ## Связи
 
@@ -812,15 +827,27 @@ Web Audio.
 `forceGlitch` больше ничего не делает, уровень глитча берётся из настроек). Локальные:
 `o` — нормализованные опции, `channel`, `profile`, `glitchP`, `glitchOn` (хоть один
 параметр глитча ненулевой), `subtitle`, `lineEl`, `voiceSrc`, `audio`, `usingGraph`,
-`chainRef`, `ctx` (обнуляется, если контекст не `running`), `voiceNode`. Кеш
+`chainRef`, `ctx` (обнуляется, если контекст не `running`), `voiceNode`; для повтора
+загрузки — `started` (было событие `playing`), `retried` (повтор уже был), `failedSrc`
+(`audio.src`, сбой которого уже учтён). Кеш
 `MediaElementSource` на элементе по `VOICE_SRC_KEY`. Возвращает строку чата, даже если
 звук не пошёл; `null` — если не показано ничего (или Элис уже говорит).
 
 #### `cleanup()` (внутри `playAliceVoice`) → ничего
 Снимает таймеры, `.glitch` и граф, обнуляет `currentVoiceAudio` — только если
-`currentVoiceAudio` всё ещё этот элемент. Висит на `ended`, `error` (оба `once`),
-`pause` после конца и на отказе `audio.play()`. `VoiceBus` не освобождает (см.
-«Подводные камни»).
+`currentVoiceAudio` всё ещё этот элемент. Висит на `ended` (`once`) и `pause` после
+конца; на `error` и отказе `audio.play()` её зовёт `retryOrEnd()`, когда повтора не
+будет. `VoiceBus` не освобождает (см. «Подводные камни»).
+
+#### `retryOrEnd(err)` (внутри `playAliceVoice`) → ничего
+Висит на `error` элемента и на отказе `play()` (оба раза — и для повтора). Не свой
+элемент или `AbortError` (своя смена `src`, остановка) — ничего. `NotAllowedError` —
+`cleanup()`: без жеста повтор не поможет. Тот же `audio.src`, что уже провалился
+(`failedSrc`), — ничего: один сбой приходит дважды. Иначе, если звук уже шёл, повтор был,
+источник `data:`/`blob:` или нет `fetch` — `cleanup()`. Иначе `retried = true`,
+предупреждение в консоль, `fetch(voiceSrc, { cache: "no-store" })` → `blob` →
+`URL.createObjectURL` в `deckWarm[voiceSrc]` и в `audio.src` того же элемента →
+`play()`. Ответ не `ok` или ошибка сети — `cleanup()`.
 
 #### `scheduleChunk()` (внутри `playAliceVoice`) → ничего
 Если реплика играет: 64-точечные кривые частоты (`freqCurve`, не ниже 50 Гц, фаза +0.7)
@@ -907,8 +934,8 @@ Web Audio.
 | Что | Когда |
 |---|---|
 | `js/presentation/08b-alice-audio.js` | `loadAliceAudio()`, вставкой `<script>` |
-| `assets/voice/<locale>/<id>.mp3?v=…` (из `VOICE_CLIPS`) | `warmDeckTakes()` по `fetch`, только `http(s)`; иначе — напрямую в `<audio>` |
-| `blob:…` | скачанные свои записи, из `deckWarm`; не отзываются |
+| `assets/voice/<locale>/<id>.mp3?v=…` (из `VOICE_CLIPS`) | `warmDeckTakes()` по `fetch`, только `http(s)`; иначе — напрямую в `<audio>`; не загрузилось в `<audio>` — ещё раз по `fetch` с `cache: "no-store"` (`retryOrEnd()`) |
+| `blob:…` | скачанные свои записи, из `deckWarm` (докачка или повтор); не отзываются |
 | `data:audio/mpeg;base64,…` | вшитая русская запись |
 | `assets/qr-terminal-shattered.png` | `<img>` в `SLIDE_05` |
 | `assets/brand-mark.svg`, `assets/brand-wordmark.svg` | логотип студии на титульном экране |

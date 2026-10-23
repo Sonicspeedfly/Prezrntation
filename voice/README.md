@@ -255,9 +255,10 @@ ElevenLabs предупреждает, что теги в v4 пока сраба
 прогнать один раз с интернетом.
 
 **Piper** лежит в `tools/piper/`: `piper/piper.exe` с github.com/rhasspy/piper
-(релиз 2023.11.14-2) и `voices/ru_RU-irina-medium.onnx` с
-huggingface.co/rhasspy/piper-voices. Другой путь — `PIPER_EXE` /
-`PIPER_VOICE`.
+(релиз 2023.11.14-2) и голоса `voices/ru_RU-irina-medium.onnx`,
+`voices/en_US-lessac-medium.onnx` с huggingface.co/rhasspy/piper-voices;
+таджикского у Piper нет. Другой путь — `PIPER_EXE`, `PIPER_VOICE`
+(русский), `PIPER_VOICE_EN`.
 
 Без `serve.js` (двойной щелчок по `index.html`, другой хостинг) ни
 ElevenLabs, ни Piper недоступны — остаётся синтез браузера, у которого

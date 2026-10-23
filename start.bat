@@ -9,7 +9,10 @@ if "%PORT%"=="" set PORT=8779
 
 where node >nul 2>nul
 if %errorlevel%==0 (
-    node serve.js %PORT% --open
+    rem Piper, the offline voice: test phrase if it is here, download if not.
+    rem The server starts either way; this was the attempt for this run.
+    node tools\get-piper.js
+    node serve.js %PORT% --open --no-piper-download
     goto :end
 )
 echo.

@@ -1,10 +1,11 @@
 /* ============================================================
    TERMINAL: SHATTERED — Piper downloader
    ------------------------------------------------------------
-   Piper (the offline fallback voice, ~85 MB to download, 98 MB on
-   disk) is not kept in the repository. serve.js calls ensurePiper()
-   at start when tools/piper/ is empty and the voice turns on by
-   itself once the files are in; by hand:
+   Piper (the offline fallback voice, ~145 MB to download, ~160 MB
+   on disk) is not kept in the repository. start.bat / start.sh run
+   this file before the server; serve.js started by hand calls
+   ensurePiper() itself when something is missing, and the voice turns
+   on once the files are in; by hand:
 
        node tools/get-piper.js
 
@@ -14,8 +15,8 @@
                                2023.11.14-2), unpacked with `tar` and
                                test-started; Windows and Linux only —
                                see build() for why not macOS
-     tools/piper/voices/       ru_RU-irina-medium.onnx + .onnx.json
-                               (huggingface.co/rhasspy/piper-voices)
+     tools/piper/voices/       one .onnx + .onnx.json per language in
+                               VOICES (huggingface.co/rhasspy/piper-voices)
 
    Each file goes to <name>.part first and is renamed only when the
    byte count matches Content-Length, so a dropped connection leaves
@@ -36,8 +37,14 @@ const { Readable } = require("stream");
 const ROOT = path.resolve(__dirname, "..");
 const DIR = path.join(ROOT, "tools", "piper");
 const RELEASE = "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/";
-const VOICE_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/ru/ru_RU/irina/medium/";
-const VOICE = "ru_RU-irina-medium.onnx";
+const VOICE_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/";
+/* A voice for every deck language piper-voices has one for: Russian and
+   English. Tajik has none — on tj Alice stays ElevenLabs or the browser.
+   Both female, medium quality, 22050 Hz; test is the launchers' phrase */
+const VOICES = {
+    ru: { file: "ru_RU-irina-medium.onnx",  dir: "ru/ru_RU/irina/medium/",  test: "Проверка." },
+    en: { file: "en_US-lessac-medium.onnx", dir: "en/en_US/lessac/medium/", test: "Voice check." }
+};
 const LOCK = path.join(DIR, ".downloading");
 const LOCK_STALE_MS = 30 * 60 * 1000;     // a lock older than this is a crashed run
 
@@ -71,18 +78,24 @@ function runs(exe) {
     });
 }
 
+/* { exe, voices: { ru: { voice, json }, en: … } } — where serve.js looks */
 function paths() {
-    return {
-        exe:   path.join(DIR, "piper", process.platform === "win32" ? "piper.exe" : "piper"),
-        voice: path.join(DIR, "voices", VOICE),
-        json:  path.join(DIR, "voices", VOICE + ".json")
-    };
+    const voices = {};
+    Object.keys(VOICES).forEach(function (l) {
+        const voice = path.join(DIR, "voices", VOICES[l].file);
+        voices[l] = { voice: voice, json: voice + ".json" };
+    });
+    return { exe: path.join(DIR, "piper", process.platform === "win32" ? "piper.exe" : "piper"), voices: voices };
 }
 
-function present() {
+/* the languages whose voice is on disk next to the exe */
+function have() {
     const p = paths();
-    return fs.existsSync(p.exe) && fs.existsSync(p.voice) && fs.existsSync(p.json);
+    if (!fs.existsSync(p.exe)) return [];
+    return Object.keys(p.voices).filter(function (l) { return fs.existsSync(p.voices[l].voice) && fs.existsSync(p.voices[l].json); });
 }
+
+function present() { return have().length === Object.keys(VOICES).length; }
 
 function mb(n) { return (n / 1048576).toFixed(n < 10485760 ? 1 : 0) + " МБ"; }
 
@@ -112,9 +125,18 @@ async function download(url, file, label, log) {
     fs.renameSync(part, file);
 }
 
+/* On Windows only the system's own bsdtar reads .zip. A GNU tar from Git
+   or MSYS that comes first in PATH (Git Bash, a VS Code bash terminal)
+   takes "C:\…" for a remote host and stops at "Cannot connect to C:". */
+function tarExe() {
+    if (process.platform !== "win32") return "tar";
+    const own = path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe");
+    return fs.existsSync(own) ? own : "tar";
+}
+
 function untar(archive, into) {
     return new Promise(function (resolve, reject) {
-        const p = spawn("tar", ["-xf", archive, "-C", into], { windowsHide: true });
+        const p = spawn(tarExe(), ["-xf", archive, "-C", into], { windowsHide: true });
         let err = "";
         p.stderr.on("data", function (d) { err += d; });
         p.on("error", function (e) { reject(new Error("tar не найден: " + e.message)); });
@@ -160,8 +182,11 @@ async function ensurePiper(log) {
                 throw new Error("Piper не запускается на этой машине (" + broken + ") — сборка удалена");
             }
         }
-        if (!fs.existsSync(p.json)) await download(VOICE_URL + VOICE + ".json", p.json, "голос (описание)", log);
-        if (!fs.existsSync(p.voice)) await download(VOICE_URL + VOICE, p.voice, "голос", log);
+        for (const l of Object.keys(VOICES)) {
+            const v = p.voices[l], url = VOICE_URL + VOICES[l].dir + VOICES[l].file;
+            if (!fs.existsSync(v.json)) await download(url + ".json", v.json, "голос " + l + " (описание)", log);
+            if (!fs.existsSync(v.voice)) await download(url, v.voice, "голос " + l, log);
+        }
         return { ok: present() };
     } catch (e) {
         return { ok: false, why: e.message };
@@ -173,11 +198,42 @@ async function ensurePiper(log) {
 /* whether this machine has a Piper build worth fetching at all */
 function supported() { return !!build(); }
 
-module.exports = { ensurePiper, present, paths, supported, runs };
+/* one short phrase through the voice of lang, under a second: the
+   launchers' check. runs() only proves the exe starts; this also loads
+   the model. "" when audio came out, otherwise the reason */
+function speaks(lang) {
+    const p = paths();
+    return new Promise(function (resolve) {
+        let got = 0, err = "", proc;
+        try { proc = spawn(p.exe, ["--model", p.voices[lang].voice, "--output_raw", "--quiet"], { cwd: path.dirname(p.exe), windowsHide: true }); }
+        catch (e) { resolve(e.code || e.message); return; }
+        const timer = setTimeout(function () { try { proc.kill(); } catch (e) {} resolve("не ответил за 15 с"); }, 15000);
+        proc.stdout.on("data", function (d) { got += d.length; });
+        proc.stderr.on("data", function (d) { err += d; });
+        proc.stdin.on("error", function () {});
+        proc.on("error", function (e) { clearTimeout(timer); resolve(e.code || e.message); });
+        proc.on("close", function (code) { clearTimeout(timer); resolve(code === 0 && got ? "" : (err.trim().split("\n").pop() || "код " + code)); });
+        proc.stdin.end(VOICES[lang].test + "\n", "utf8");
+    });
+}
 
+module.exports = { VOICES, ensurePiper, present, have, paths, supported, runs, speaks };
+
+/* node tools/get-piper.js — what start.bat / start.sh run before the
+   server: already in place → a test phrase per voice; something missing
+   → download it, then the phrases. Exit 1 unless every voice reads; the
+   launchers go on either way */
 if (require.main === module) {
-    ensurePiper(function (m) { console.log("  " + m); }).then(function (r) {
-        console.log(r.ok ? "  Piper готов: " + path.relative(ROOT, DIR) : "  Piper не скачан: " + r.why);
-        process.exit(r.ok ? 0 : 1);
+    const missing = Object.keys(VOICES).filter(function (l) { return have().indexOf(l) < 0; });
+    if (missing.length && supported())
+        console.log("  Piper: " + (fs.existsSync(paths().exe) ? "нет голоса " + missing.join(", ") + " — докачиваю (~60 МБ на голос)"
+                                                              : "офлайн-голоса нет — качаю (~145 МБ, один раз)"));
+    ensurePiper(function (m) { console.log("  " + m); }).then(async function (r) {
+        const reads = [], fails = [];
+        for (const l of have()) { const why = await speaks(l); if (why) fails.push(l + ": " + why); else reads.push(l); }
+        if (!r.ok) console.log("  Piper не скачан: " + r.why);
+        fails.forEach(function (f) { console.log("  Piper не прочитал пробную фразу, " + f); });
+        if (reads.length) console.log("  Piper готов: " + path.relative(ROOT, DIR) + ", пробная фраза прочитана: " + reads.join(", "));
+        process.exit(r.ok && !fails.length ? 0 : 1);
     });
 }

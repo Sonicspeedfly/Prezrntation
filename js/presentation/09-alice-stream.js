@@ -619,8 +619,39 @@
             }
             currentVoiceAudio = null;
         };
+
+        // A take whose cold load fails gets one more try, fetched into a
+        // blob: URL and put on the SAME element, so the FX chain and the
+        // glitch timers stay. Seen on the presenter's Chrome with a
+        // download helper that hooks media requests on http pages (never
+        // on file://): the line showed its text and stayed silent. The
+        // failure reports twice — "error" and the rejected play() — and
+        // counts once. One retry per line; none after she has started,
+        // none for data:/blob: sources, which never touch the network.
+        let started = false, retried = false, failedSrc = "";
+        const retryOrEnd = (err) => {
+            if (currentVoiceAudio !== audio) return;
+            if (err && err.name === "AbortError") return;             // our own src swap or a stop
+            if (err && err.name === "NotAllowedError") return cleanup(); // needs a gesture: a retry will not help
+            if (audio.src === failedSrc) return;
+            failedSrc = audio.src;
+            if (started || retried || /^(data|blob):/.test(voiceSrc) || typeof fetch !== "function") return cleanup();
+            retried = true;
+            try { console.warn("[AliceVoice] " + voiceSrc + " не загрузился — повтор через fetch"); } catch (e) {}
+            fetch(voiceSrc, { cache: "no-store" })
+                .then(r => r.ok ? r.blob() : null)
+                .then(b => {
+                    if (currentVoiceAudio !== audio) return;
+                    if (!b) return cleanup();
+                    audio.src = deckWarm[voiceSrc] = URL.createObjectURL(b);
+                    const p2 = audio.play();
+                    if (p2 && typeof p2.catch === "function") p2.catch(retryOrEnd);
+                })
+                .catch(() => { if (currentVoiceAudio === audio) cleanup(); });
+        };
+        audio.addEventListener("playing", () => { started = true; }, { once: true });
         audio.addEventListener("ended", cleanup, { once: true });
-        audio.addEventListener("error", cleanup, { once: true });
+        audio.addEventListener("error", () => retryOrEnd());
         audio.addEventListener("pause", () => { if (audio.ended) cleanup(); });
 
         // ---------- glitch driver (intelligibility-safe) -----------
@@ -722,7 +753,7 @@
         }
 
         const p = audio.play();
-        if (p && typeof p.catch === "function") p.catch(() => cleanup());
+        if (p && typeof p.catch === "function") p.catch(retryOrEnd);
 
         return lineEl;
     }

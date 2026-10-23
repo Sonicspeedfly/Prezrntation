@@ -1140,9 +1140,32 @@ document (всплытие):                                            │
 [06-demo.js:1807](../../js/demo/06-demo.js#L1807). Возврат к ногам без кинематографа.
 
 #### `voidSay(key, delay, hold)`
-[06-demo.js:1817](../../js/demo/06-demo.js#L1817). Через `delay` мс показать
-`tx(key)` в `#dgVoidSub`, через `hold` мс убрать. Пропускает, если сцена уже
-остановлена.
+[06-demo.js:1819](../../js/demo/06-demo.js#L1819). Через `delay` мс показать
+`tx(key)` в `#dgVoidSub` и отдать ту же строку `neikonSay()`, через `hold` мс
+убрать. Пропускает, если сцена уже остановлена.
+
+#### Голос Нейкона: `neikonSay(text)`, `neikonSpoken(text)`, `neikonHush()`
+[06-demo.js:1832](../../js/demo/06-demo.js#L1832)–[1882](../../js/demo/06-demo.js#L1882).
+Мысли Нейкона вслух: строки пробуждения (`voidSay`), цель в пустоте
+(`syncQuestGuide`, только когда строка цели уже на экране) и строка-подсказка
+стола (`refreshDeskPanels`, только на стадии `desk`). Читает ElevenLabs голосом
+Egor T — `NeuralVoice.speak(text, { speaker: "neikon", lang })`; без ElevenLabs
+Нейкон остаётся текстом: голоса Piper женские, а голос браузера — чей угодно.
+
+- `neikonSpoken(text)` — что читать: срезает хвост-команду после двоеточия
+  (`: run /home/neikon/recover.sh`, `: cat /var/log/session.log`) и обратные
+  кавычки. Строка без букв (`q.done` = «—») не читается.
+- `neikonSay(text)` — та же мысль подряд (`neikonLast`) не повторяется. Пока
+  его строка готовится или звучит (`neikonBusy`), новые ждут в `neikonQueue`
+  по порядку, не больше трёх (лишняя вытесняет самую старую): строки
+  пробуждения идут через 6,6 с, а каждая звучит около 7 с — с одним местом
+  цель вытесняла третью строку. Пока говорит Элис (`NeuralVoice.isSpeaking()`,
+  `AliceVoice.isSpeaking()`), мысль остаётся текстом; следующая строка Элис
+  обрывает Нейкона, и очередь сбрасывается. Звук выключен (`sfxOn === false`)
+  или демо закрыто — молчит.
+- `neikonHush()` — очередь и `neikonLast` пусты, текущая строка Нейкона
+  остановлена. Зовут `runVoidStage()` (повтор начинается с первой мысли) и
+  `close()`.
 
 #### `onVoidLock(on)` / `onVoidWake(t, wake)` / `onVoidMove(dist, bearing, target)` / `onVoidArrive()` / `onVoidExamine(id)`
 [06-demo.js:1835](../../js/demo/06-demo.js#L1835)–[1903](../../js/demo/06-demo.js#L1903).
@@ -1299,6 +1322,7 @@ document (всплытие):                                            │
 
 #### `refreshDeskPanels()`
 [06-demo.js:2832](../../js/demo/06-demo.js#L2832). Счётчики, подсказка, часы, окна.
+Новая подсказка на стадии `desk` уходит в `neikonSay()`.
 
 #### `deskNudge()` → строка
 [06-demo.js:2855](../../js/demo/06-demo.js#L2855). Строка ориентировки по прогрессу.

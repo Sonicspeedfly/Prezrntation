@@ -1087,8 +1087,9 @@ DIAGNOSIS: <одна строка краткой технической сути
                 (elWhy ? " — " + elWhy : ev && ev.paused ? " — " + tx("sb.voice.paused", "пауза") + ": " + (ev.why || "") : "");
             opt("elevenlabs").disabled = !!elWhy;
             const pWhy = !st.served ? needServer : !st.piper ? tx("sb.voice.no_piper", "Piper не установлен")
-                       : loc() !== "ru" ? tx("sb.voice.not_this_lang", "этот язык не читает") : "";
-            opt("piper").textContent = "PIPER · " + tx("sb.voice.offline", "офлайн, русский") + (pWhy ? " — " + pWhy : "");
+                       : !NeuralVoice.fits(loc(), "piper") ? tx("sb.voice.not_this_lang", "этот язык не читает") : "";
+            const pLangs = Object.keys(st.piperVoices || {}).map(function (l) { return l.toUpperCase(); }).join("/");
+            opt("piper").textContent = "PIPER · " + tx("sb.voice.offline", "офлайн") + (pLangs ? " · " + pLangs : "") + (pWhy ? " — " + pWhy : "");
             opt("piper").disabled = !!pWhy;
             opt("synth").textContent = "WEB SPEECH · " + tx("sb.voice.browser", "голос браузера") + (synth ? "" : " — " + tx("sb.voice.none", "нет"));
             opt("synth").disabled = !synth;
@@ -1112,13 +1113,15 @@ DIAGNOSIS: <одна строка краткой технической сути
             if (!box || !box.checked) return;
             const mood = typeof NeuralVoice !== "undefined" ? NeuralVoice.moodOf(lucidity) : "neutral";
             const pick = (el.querySelector(".aisb-voice") || {}).value || "auto";
-            /* the core answers in the interface language; Piper reads only Russian */
+            /* the core answers in the interface language; Piper reads Russian and English */
             const neural = pick !== "synth" && typeof NeuralVoice !== "undefined" &&
                            await NeuralVoice.speak(text, { mood: mood, lang: loc(), engine: pick });
             if (seq !== runSeq || !open) return;                 // a newer run started meanwhile
             if (neural) voiceUsed = (NeuralVoice.engine === "elevenlabs" ? "ELEVENLABS" : "PIPER (" + (NeuralVoice.note || "offline") + ")") + " · " + mood;
             else if (typeof AliceVoice !== "undefined" && AliceVoice.available) {
-                try { AliceVoice.speak(text, Object.assign({ volume: 0.95 }, SYNTH_MOOD[mood])); voiceUsed = "WEB SPEECH · " + mood; } catch (e) {}
+                /* synth: AliceVoice would otherwise take ElevenLabs here — the
+                   engine that was just skipped or picked against */
+                try { AliceVoice.speak(text, Object.assign({ volume: 0.95, synth: true }, SYNTH_MOOD[mood])); voiceUsed = "WEB SPEECH · " + mood; } catch (e) {}
             }
             paintVoice();
         }

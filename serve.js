@@ -10,7 +10,8 @@
        https://192-168-x-x.local-ip.sh/ (см. «the link for the jury's
        phones» ниже); QR этой ссылки — в окне сервера и на /qr;
      • студия озвучки (/studio.html);
-     • голос Элис без записи — ElevenLabs или Piper (/api/tts);
+     • голос Элис без записи — ElevenLabs или Piper (/api/tts); там же
+       мысли Нейкона в демо — только ElevenLabs;
      • мост к локальной Ollama для полигона (/api/ollama/*).
 
    Полигон и голос открыты и гостям — телефонам жюри в той же Wi-Fi
@@ -466,8 +467,8 @@ route("POST", "/api/ollama/generate", { guests: true }, async (req, res) => {
         %USERPROFILE%\.terminal-shattered\elevenlabs.json { "apiKey": … }
         or ELEVENLABS_API_KEY — so it never ends up on a flash drive, a
         host, or in the page: the browser only ever talks to /api/tts.
-     2. Piper (tools/piper/, offline, Russian only) when ElevenLabs is not
-        configured, refuses, or the network is down.
+     2. Piper (tools/piper/, offline, Russian and English) when ElevenLabs
+        is not configured, refuses, or the network is down.
      3. Neither: 503, and the page falls back to speech synthesis.
 
    Every answer is kept on disk in tools/tts-cache/ (not served), so a
@@ -482,10 +483,15 @@ const TTS_CACHE = new Map();
    language_code), MP3 44.1 kHz 128 kbps. Clone strength (Low) has no
    field in the public API; low is where the service starts a
    professional clone anyway. Any of it can be overridden in the same
-   json: voiceId, model, settings, outputFormat. */
+   json: voiceId, model, settings, outputFormat.
+
+   Neikon speaks in the demo with Egor T, set up on the same page with
+   the same model and settings — only the voice differs; "neikon":
+   { voiceId, voiceName } in the json overrides it. */
 const ELEVEN_DEFAULTS = {
     voiceId: "VD1if7jDVYtAKs4P0FIY",            // Milly Maple - Cool and Bright (professional clone)
     voiceName: "Milly Maple - Cool and Bright",
+    neikon: { voiceId: "qJBO8ZmKp4te7NTtYgzz", voiceName: "Egor T - Natural, Soothing & Relatable" },  // professional clone
     model: "eleven_v4",
     settings: { stability: 0.5, similarity_boost: 1.0 },
     outputFormat: "mp3_44100_128"
@@ -508,6 +514,7 @@ function elevenConfig() {
     try { cfg = JSON.parse(fs.readFileSync(ELEVEN_FILE, "utf8")); } catch (e) {}
     const c = Object.assign({}, ELEVEN_DEFAULTS, cfg);
     c.settings = Object.assign({}, ELEVEN_DEFAULTS.settings, cfg.settings || {});
+    c.neikon = Object.assign({}, ELEVEN_DEFAULTS.neikon, cfg.neikon || {});
     c.apiKey = process.env.ELEVENLABS_API_KEY || cfg.apiKey || "";
     if (process.env.ELEVENLABS_VOICE_ID) c.voiceId = process.env.ELEVENLABS_VOICE_ID;
     if (process.env.ELEVENLABS_MODEL) c.model = process.env.ELEVENLABS_MODEL;
@@ -522,17 +529,22 @@ const MOOD_TAGS = {
     ok:      "[sigh] [relieved, soft]",
     neutral: ""
 };
+/* Neikon has one register in the demo: thinking aloud, alone in the dark.
+   One word on purpose: "[tired, quiet, thinking aloud]" got a 2.7 s sigh
+   from Egor T on v4 and not one word of the line (checked by speech-to-text) */
+const NEIKON_TAG = "[quietly]";
 
-function elevenSay(c, text, mood) {
+/* tag: the audio tag in front of the text ("" for none); voiceId: whose voice */
+function elevenSay(c, text, tag, voiceId) {
     const body = JSON.stringify({
-        text: (MOOD_TAGS[mood] ? MOOD_TAGS[mood] + " " : "") + text,
+        text: (tag ? tag + " " : "") + text,
         model_id: c.model,
         voice_settings: c.settings
     });
     return new Promise((resolve, reject) => {
         const req = require("https").request({
             host: "api.elevenlabs.io", method: "POST",
-            path: "/v1/text-to-speech/" + encodeURIComponent(c.voiceId) + "?output_format=" + encodeURIComponent(c.outputFormat),
+            path: "/v1/text-to-speech/" + encodeURIComponent(voiceId) + "?output_format=" + encodeURIComponent(c.outputFormat),
             headers: { "xi-api-key": c.apiKey, "Content-Type": "application/json", "Accept": "audio/mpeg",
                        "Content-Length": Buffer.byteLength(body) }
         }, r => {
@@ -558,30 +570,47 @@ function elevenSay(c, text, mood) {
    pace (length_scale), how loosely the voice is generated (noise_scale),
    how unevenly the sounds are timed (noise_w) and the pause after each
    sentence. Each mood sets those four; the page adds tremor, stutter and
-   echo in Web Audio. PIPER_EXE / PIPER_VOICE override the paths.
+   echo in Web Audio.
 
-   Piper is not in the repository: when tools/piper/ is empty, the
+   One voice per language, from VOICES in tools/get-piper.js: Russian
+   and English. Tajik has none in piper-voices, so a tj line gets 503
+   and the page falls back. PIPER_EXE overrides the exe, PIPER_VOICE
+   the Russian voice, PIPER_VOICE_EN the English one.
+
+   Piper is not in the repository: when any of it is missing, the
    start-up below fetches it in the background (tools/get-piper.js)
-   and piperCheck() switches the voice on once the files are in — no
-   restart. --no-piper-download skips that. */
+   and piperCheck() switches the voices on once the files are in — no
+   restart. --no-piper-download skips that; start.bat / start.sh pass
+   it, they have already checked and fetched Piper before the server. */
+const getPiper = require("./tools/get-piper");
 const PIPER = {};
 function piperCheck() {
-    const exe = process.env.PIPER_EXE || path.join(ROOT, "tools", "piper", "piper", process.platform === "win32" ? "piper.exe" : "piper");
-    const voice = process.env.PIPER_VOICE || path.join(ROOT, "tools", "piper", "voices", "ru_RU-irina-medium.onnx");
-    const ok = fs.existsSync(exe) && fs.existsSync(voice);
-    let rate = 22050;
-    try { rate = JSON.parse(fs.readFileSync(voice + ".json", "utf8")).audio.sample_rate || rate; } catch (e) {}
-    Object.assign(PIPER, { exe, voice, ok, rate, name: path.basename(voice, ".onnx") });
+    const p = getPiper.paths();
+    const exe = process.env.PIPER_EXE || p.exe;
+    const voices = {};
+    if (fs.existsSync(exe)) Object.keys(p.voices).forEach(l => {
+        const voice = process.env[l === "ru" ? "PIPER_VOICE" : "PIPER_VOICE_" + l.toUpperCase()] || p.voices[l].voice;
+        if (!fs.existsSync(voice)) return;
+        let rate = 22050;
+        try { rate = JSON.parse(fs.readFileSync(voice + ".json", "utf8")).audio.sample_rate || rate; } catch (e) {}
+        voices[l] = { voice, rate, name: path.basename(voice, ".onnx") };
+    });
+    Object.assign(PIPER, { exe, voices, ok: Object.keys(voices).length > 0 });
 }
 piperCheck();
-/* no Piper build that runs on macOS (tools/get-piper.js, build()) — nothing to fetch there */
-const PIPER_FETCH = !PIPER.ok && !process.env.PIPER_EXE && !process.env.PIPER_VOICE && !args.includes("--no-piper-download") &&
-                    require("./tools/get-piper").supported();
+/* no Piper build that runs on macOS (tools/get-piper.js, build()) — nothing
+   to fetch there; paths set by hand are the presenter's own business */
+const PIPER_FETCH = !getPiper.present() && !Object.keys(process.env).some(k => /^PIPER_(EXE|VOICE)/.test(k)) &&
+                    !args.includes("--no-piper-download") && getPiper.supported();
 function fetchPiper() {
-    console.log("  Piper: офлайн-голоса нет — качаю в фоне (~85 МБ, один раз); презентация уже работает");
-    require("./tools/get-piper").ensurePiper(m => console.log("  " + m)).then(r => {
+    console.log("  Piper: " + (PIPER.ok ? "не хватает голосов — докачиваю" : "офлайн-голоса нет — качаю") +
+                " в фоне (до ~145 МБ, один раз); презентация уже работает");
+    getPiper.ensurePiper(m => console.log("  " + m)).then(r => {
         piperCheck();
-        console.log(PIPER.ok ? "  Piper готов — офлайн-голос включён" : "  Piper не скачан: " + r.why + " (повторю при следующем запуске; вручную: node tools/get-piper.js)");
+        const langs = Object.keys(PIPER.voices).join(", ");
+        console.log(r.ok ? "  Piper готов — офлайн-голос: " + langs
+                         : "  Piper не скачан: " + r.why + " (повторю при следующем запуске; вручную: node tools/get-piper.js)" +
+                           (PIPER.ok ? "; пока читает " + langs : ""));
     });
 }
 
@@ -605,9 +634,10 @@ function wav(pcm, rate) {
     return Buffer.concat([h, pcm]);
 }
 
-function piperSay(text, mood) {
+/* v: PIPER.voices[lang] */
+function piperSay(text, mood, v) {
     const m = MOODS[mood] || MOODS.neutral;
-    const args = ["--model", PIPER.voice, "--output_raw", "--quiet"];
+    const args = ["--model", v.voice, "--output_raw", "--quiet"];
     Object.keys(m).forEach(k => args.push("--" + k, String(m[k])));
     return new Promise((resolve, reject) => {
         const p = spawn(PIPER.exe, args, { cwd: path.dirname(PIPER.exe), windowsHide: true });
@@ -620,7 +650,7 @@ function piperSay(text, mood) {
             clearTimeout(kill);
             const pcm = Buffer.concat(out);
             if (code !== 0 || !pcm.length) return reject(new Error("piper: " + (Buffer.concat(err).toString("utf8").trim().slice(-300) || "код " + code)));
-            resolve(wav(pcm, PIPER.rate));
+            resolve(wav(pcm, v.rate));
         });
         p.stdin.end(text.replace(/\s+/g, " ").trim() + "\n", "utf8");
     });
@@ -650,10 +680,11 @@ route("GET", "/api/tts/info", { guests: true }, (req, res) => {
     const guest = !isLocal(req), spent = guest && eleven.guestChars >= guestBudget(c);
     json(res, 200, {
         ok: true,
-        elevenlabs: { configured: !!c.apiKey, voice: c.voiceName, model: c.model,
+        elevenlabs: { configured: !!c.apiKey, voice: c.voiceName, neikonVoice: c.neikon.voiceName, model: c.model,
                       paused: Date.now() < eleven.cooldownUntil || spent,
                       why: spent ? "лимит для гостей исчерпан" : (eleven.why || null) },
-        piper: PIPER.ok, piperVoice: PIPER.ok ? PIPER.name : null,
+        piper: PIPER.ok,
+        piperVoices: Object.fromEntries(Object.keys(PIPER.voices).map(l => [l, PIPER.voices[l].name])),   // { ru: "ru_RU-irina-medium", en: … }
         moods: Object.keys(MOOD_TAGS)
     });
 });
@@ -671,6 +702,8 @@ async function speakFor(req, res, guest) {
     const text = String(body.text || "").slice(0, guest ? 600 : 1200).trim();
     const mood = MOOD_TAGS[body.mood] !== undefined ? body.mood : "neutral";
     const lang = String(body.lang || "ru");
+    /* "alice" (default) | "neikon" — the demo's thoughts, with his own voice and tag */
+    const neikon = body.speaker === "neikon";
     /* "auto" (default) | "elevenlabs" — asked for by name, so tried even
        during the pause after an error | "piper" — skip ElevenLabs */
     const engine = body.engine === "elevenlabs" || body.engine === "piper" ? body.engine : "auto";
@@ -680,12 +713,16 @@ async function speakFor(req, res, guest) {
     const c = elevenConfig();
     if (engine === "piper") note = "";
     else if (c.apiKey) {
-        const key = ttsKey(["eleven", c.voiceId, c.model, JSON.stringify(c.settings), c.outputFormat, mood, text]);
+        /* Alice's key stays what it was, so her cached lines stay valid;
+           Neikon's carries his tag, so a new tag is not served from old takes */
+        const key = neikon ? ttsKey(["eleven", c.neikon.voiceId, c.model, JSON.stringify(c.settings), c.outputFormat, NEIKON_TAG, text])
+                           : ttsKey(["eleven", c.voiceId, c.model, JSON.stringify(c.settings), c.outputFormat, mood, text]);
         let hit = cached(key, "mp3");
         const overBudget = guest && eleven.guestChars + text.length > guestBudget(c);
         if (!hit && !overBudget && (engine === "elevenlabs" || Date.now() >= eleven.cooldownUntil)) {
             try {
-                hit = keep(key, await elevenSay(c, text, mood), "mp3");
+                hit = keep(key, await (neikon ? elevenSay(c, text, NEIKON_TAG, c.neikon.voiceId)
+                                              : elevenSay(c, text, MOOD_TAGS[mood], c.voiceId)), "mp3");
                 if (guest) eleven.guestChars += text.length;
                 eleven.why = "";
             } catch (e) {
@@ -693,21 +730,26 @@ async function speakFor(req, res, guest) {
                    for one — otherwise every line would wait for it first */
                 eleven.why = e.message;
                 eleven.cooldownUntil = Date.now() + (e.status === 401 || e.status === 403 ? 300000 : 60000);
-                console.log("  ElevenLabs: " + e.message + " — голос Элис пока через Piper");
+                console.log("  ElevenLabs: " + e.message + (neikon ? " — Нейкон пока молчит" : " — голос Элис пока через Piper"));
             }
         }
         if (hit) return sendAudio(res, hit, "elevenlabs", "");
         note = "ElevenLabs: " + (overBudget ? "лимит для гостей исчерпан" : eleven.why || "пауза после ошибки");
     } else note = "ElevenLabs: ключ не задан";
 
-    /* Piper only reads Russian; anything else goes back to the page */
-    if (!PIPER.ok || lang !== "ru") return json(res, 503, { ok: false, why: note + (PIPER.ok ? "" : "; Piper не найден") });
-    const key = ttsKey(["piper", PIPER.name, mood, text]);
+    /* Neikon has ElevenLabs only: both Piper voices are female, and a wrong
+       voice is worse than the silent text he had before */
+    if (neikon) return json(res, 503, { ok: false, why: [note, "у Нейкона нет офлайн-голоса"].filter(Boolean).join("; ") });
+
+    /* Piper reads the languages it has a voice for; anything else goes back to the page */
+    const v = PIPER.voices[lang];
+    if (!v) return json(res, 503, { ok: false, why: [note, PIPER.ok ? "у Piper нет голоса для «" + lang + "»" : "Piper не найден"].filter(Boolean).join("; ") });
+    const key = ttsKey(["piper", v.name, mood, text]);
     let hit = cached(key, "wav");
     if (!hit) {
         /* one Piper at a time: two at once on a laptop CPU are both slow,
            and the model is busy answering in the meantime anyway */
-        const job = ttsQueue.then(() => piperSay(text, mood));
+        const job = ttsQueue.then(() => piperSay(text, mood, v));
         ttsQueue = job.catch(() => {});
         hit = keep(key, await job, "wav");
     }
@@ -1003,7 +1045,9 @@ server.listen(PORT, "0.0.0.0", async () => {
     }
     const c = elevenConfig();
     console.log("  голос Элис без записи:  " + (c.apiKey ? "ElevenLabs (Milly Maple, " + c.model + ")" : "ElevenLabs не настроен") +
-                (PIPER.ok ? " → Piper офлайн" : PIPER_FETCH ? " → Piper качается" : ""));
+                (PIPER.ok ? " → Piper офлайн: " + Object.keys(PIPER.voices).join(", ") : "") +
+                (PIPER_FETCH ? (PIPER.ok ? ", остальное докачивается" : " → Piper качается") : ""));
+    console.log("  голос Нейкона в демо:   " + (c.apiKey ? "ElevenLabs (" + c.neikon.voiceName.split(" - ")[0] + ", " + c.model + ")" : "молчит — нужен ключ ElevenLabs"));
     console.log("  гости по QR:            " + (GUESTS ? "полигон и голос открыты (ElevenLabs — до " + guestBudget(c) + " символов)" : "закрыто (--no-guests)"));
     console.log("  записей в студии:       " + r.count + (r.inline ? " (вшиты)" : ""));
     if (r.unknown.length) console.log("  не распознаны по имени: " + r.unknown.join(", "));

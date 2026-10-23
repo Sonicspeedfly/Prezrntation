@@ -182,7 +182,8 @@
            A line with no recording goes to NeuralVoice
            (19-neural-voice.js) when serve.js has it: ElevenLabs — Milly
            Maple, the voice of her recordings — in any language, or
-           Piper offline in Russian. The mood is read from the line.
+           Piper offline in Russian and English. The mood is read from
+           the line.
            The voice takes a second or three to arrive, so speak() says
            yes at once and, if it fails, the line goes to speech
            synthesis after all.
@@ -258,7 +259,9 @@
                 if (typeof aliceHasRecording === "function" && aliceHasRecording(str)) return false;
                 // the same line already in flight is a duplicate call
                 if (speaking && currentText === str) return false;
-                if (neuralFits()) return speakNeural(str, opts);
+                /* opts.synth: the browser's voice and nothing else — the
+                   sandbox's WEB SPEECH, which must not spend ElevenLabs credits */
+                if (neuralFits() && !opts.synth) return speakNeural(str, opts);
                 return speakSynth(str, opts);
             },
             stop: function () {

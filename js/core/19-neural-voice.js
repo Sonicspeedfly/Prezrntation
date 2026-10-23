@@ -3,15 +3,18 @@
    ------------------------------------------------------------
    Alice reading text that has no recording — the AI sandbox's live
    reactions, and the demo's lines on HARD — in a real voice instead
-   of the operating system's robot.
+   of the operating system's robot. And Neikon's thoughts in the demo
+   (speaker: "neikon"): Egor T on ElevenLabs, nothing else — no Piper,
+   no browser voice; without ElevenLabs he stays text.
 
-   The voice is made in serve.js: POST /api/tts { text, mood, lang }.
+   The voice is made in serve.js: POST /api/tts { text, mood, lang, speaker }.
    It answers with
      • ElevenLabs — Milly Maple on Eleven v4, the voice the recorded
        Alice uses; the mood is acted out by audio tags
        ([panicked, breathless] …), any language the model knows;
-     • or Piper (tools/piper/), offline, Russian only, when ElevenLabs
-       is not set up, refuses, or the internet is down;
+     • or Piper (tools/piper/), offline, Russian and English (there is
+       no Piper voice for Tajik), when ElevenLabs is not set up,
+       refuses, or the internet is down;
    and says which in the X-TTS-Engine header.
 
    The mood is finished here, in Web Audio:
@@ -46,6 +49,8 @@
         function served() { return typeof location !== "undefined" && /^https?:$/.test(location.protocol); }
         function eleven() { return !!(info && info.elevenlabs && info.elevenlabs.configured); }
         function piper() { return !!(info && info.piper); }
+        /* Piper reads a language only with its voice: info.piperVoices { ru, en } */
+        function piperReads(locale) { return piper() && !!info.piperVoices && !!info.piperVoices[locale]; }
 
         /* Where to ask. First the server that gave this page; if that is
            not serve.js — some other static server on this machine —
@@ -85,13 +90,14 @@
         }
 
         /* Can it read this language with this engine? ElevenLabs reads them
-           all (Eleven v4 knows Russian, English and Tajik); Piper only
-           Russian. engine: "auto" (default) | "elevenlabs" | "piper". */
+           all (Eleven v4 knows Russian, English and Tajik); Piper those it
+           has a voice for — Russian and English. engine: "auto" (default)
+           | "elevenlabs" | "piper". */
         function fits(locale, engine) {
-            const ru = (locale || "ru") === "ru";
+            const l = locale || "ru";
             if (engine === "elevenlabs") return eleven();
-            if (engine === "piper") return piper() && ru;
-            return eleven() || (piper() && ru);
+            if (engine === "piper") return piperReads(l);
+            return eleven() || piperReads(l);
         }
 
         /* the sandbox's LUCIDITY bands */
@@ -200,7 +206,8 @@
             return { an: an, tail: tail };
         }
 
-        /* opts: { mood, lang, engine, volume, onStart, onEnd(natural) }. Resolves
+        /* opts: { mood, lang, engine, speaker, volume, onStart, onEnd(natural) };
+           speaker "neikon" needs ElevenLabs whatever the engine. Resolves
            true once the voice has started (or was stopped while being made),
            false if no engine could read it — then nothing was played, onEnd
            is not called, and the caller can fall back. onEnd runs on every
@@ -210,7 +217,8 @@
             text = String(text || "").trim();
             const lang = opts.lang || (typeof settingsState !== "undefined" && settingsState.locale) || "ru";
             const want = opts.engine || "auto";                 // the engine asked for
-            if (!text || !(await check()) || !fits(lang, want)) return false;
+            const neikon = opts.speaker === "neikon";
+            if (!text || !(await check()) || !(neikon ? eleven() : fits(lang, want))) return false;
             const ctx = (typeof Audio !== "undefined" && Audio.getContext) ? Audio.getContext() : null;
             if (!ctx) return false;
             if (ctx.state !== "running") { try { await ctx.resume(); } catch (e) {} }
@@ -221,7 +229,7 @@
             try {
                 const r = await fetch(base + "api/tts", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: text, mood: mood, lang: lang, engine: want })
+                    body: JSON.stringify({ text: text, mood: mood, lang: lang, engine: want, speaker: neikon ? "neikon" : undefined })
                 });
                 if (!r.ok) throw new Error("tts " + r.status);
                 engine = r.headers.get("X-TTS-Engine") || "piper";
@@ -299,7 +307,7 @@
                 return {
                     served: !!info && !info.none,
                     elevenlabs: info && info.elevenlabs ? info.elevenlabs : null,
-                    piper: piper(), piperVoice: info && info.piperVoice
+                    piper: piper(), piperVoices: (info && info.piperVoices) || {}
                 };
             },
             get engine() { return lastEngine; },          // who read the last line: "elevenlabs" | "piper"
