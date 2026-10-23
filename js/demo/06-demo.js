@@ -1777,16 +1777,16 @@
             blink(0.12, 1680);
             blink(1.00, 2050);     // properly awake
 
-            voidSay("demo.void.sub1", 1900, 2600);
-            voidSay("demo.void.sub2", 4700, 3000);
-            voidSay("demo.void.sub3", 8200, 3200);
+            voidSay("demo.void.sub1", 1500, 6000);
+            voidSay("demo.void.sub2", 8100, 6000);
+            voidSay("demo.void.sub3", 14700, 6000);
 
             voidLater(function () {
                 if (elVoidHelp) elVoidHelp.classList.add("on");
                 if (elVoidCompass) elVoidCompass.classList.add("on");
                 if (elVoidObjective) elVoidObjective.classList.add("on");
                 syncQuestGuide();
-            }, 3500);
+            }, 17000);
 
             /* If nobody has moved after a while, nudge harder — the jury is
                not necessarily a gamer and should never feel stuck. */
@@ -3088,7 +3088,7 @@
                            did not, so the loudest line in the demo spoke on
                            every difficulty — at a hardcoded full scale. */
                         if (state.profile && state.profile.voice && AliceVoice && AliceVoice.available) {
-                            try { speakAsAlice(line, { pitch: 1.35, rate: 1.15, volume: 1 }); } catch (e) {}
+                            try { speakAsAlice(line, { pitch: 1.35, rate: 1.15, volume: 1, clip: "demo.end.cry" }); } catch (e) {}
                         }
                         logEvent("bad", "alice :: " + line);
                     }
@@ -3353,7 +3353,7 @@
             // Alice reacts to the fix (voice only on HARD) — localized
             const line = tx("demo.ed.aliceSolved_" + state.diff);
             if (prof.voice && AliceVoice.available) {
-                speakAsAlice(line, { pitch: 0.40, rate: 0.70 });
+                speakAsAlice(line, { pitch: 0.40, rate: 0.70, clip: "demo.solved." + state.diff });
             } else {
                 deskPrint("ai", "[ alice ] " + line);
             }
@@ -3515,7 +3515,7 @@
             // HARD only: heavy whisper through speech synthesis
             if (state.profile && state.profile.voice && AliceVoice && AliceVoice.available) {
                 try {
-                    speakAsAlice(tx("demo.scare.voice"), { pitch: 0.25, rate: 0.6, volume: 0.8 });
+                    speakAsAlice(tx("demo.scare.voice"), { pitch: 0.25, rate: 0.6, volume: 0.8, clip: "demo.scare.voice" });
                 } catch (e) {}
             }
         }
@@ -3533,7 +3533,7 @@
             deskPrint("warn", tx("demo.walk.alice"));
             deskPrint("sys",  tx("demo.walk.sys"));
             if (state.profile && state.profile.voice && AliceVoice && AliceVoice.available) {
-                try { speakAsAlice(tx("demo.walk.voice"), { pitch: 0.42, rate: 0.7, volume: 0.7 }); } catch (e) {}
+                try { speakAsAlice(tx("demo.walk.voice"), { pitch: 0.42, rate: 0.7, volume: 0.7, clip: "demo.walk.voice" }); } catch (e) {}
             }
         }
 

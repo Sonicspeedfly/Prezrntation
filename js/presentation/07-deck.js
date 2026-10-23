@@ -45,6 +45,10 @@
         if (slide.id === "SLIDE_02") {
             ensureDemoCta(slideBody);
         }
+        // SLIDE_05: the classroom playtest recording (17-evidence.js)
+        if (slide.id === "SLIDE_05" && typeof ensureEvidenceButton === "function") {
+            ensureEvidenceButton(slideBody);
+        }
 
         slideSub.classList.remove("swap-anim");
         slideBody.classList.remove("swap-anim");

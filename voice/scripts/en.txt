@@ -1,0 +1,27 @@
+# Сценарий длинных дорожек — English.
+# Источник субтитров интро: node voice/cues.js (студия пересобирает их сама).
+#
+# Формат: «## id дорожки», затем реплики «ГОВОРЯЩИЙ: текст» — НЕЙКОН или ЭЛИС.
+# Порядок реплик должен совпадать с записью. (Скобки) — теги голоса, в субтитры не идут.
+
+## jury_act1
+ЭЛИС: (soft anxious whisper, slight tremor in voice) Neykon... look at the incoming stream. The video broadcast channel just locked onto an external display. (short startled gasp, lowering voice) People are watching us right now from a lecture hall... Is that... the jury panel?
+НЕЙКОН: (heavy exhausted sigh, dull Enter keystroke sound, calm low voice with a subtle rasp) Let them watch, Alice. (short pause, addressing the audience with confident irony) Esteemed members of the jury... don't bother looking for a speaker at the podium. (faint smirk in voice, unhurried) Today, the project presents itself — straight from inside the malfunctioning Fourth Sector. My name is Neykon. (voice turns deeper, serious and weighty) And what you see behind my back is not just a pretty three-dimensional backdrop.
+
+## jury_act2
+НЕЙКОН: (lively conversational tone, sarcastic) Tell me honestly... how many times have you seen students who call themselves programmers, yet freeze in complete stupor at the very first segmentation fault? (short exhale, firm and serious) And it's not even about neural networks. This cargo cult was thriving long before AI! Yesterday they blindly copy-pasted from StackOverflow, today they mash Tab in autocomplete. Pure shamanism: paste someone else's snippet, pray to the compiler... and the second a pointer drops in memory — total panic!
+ЭЛИС: (sorrowful, perceptive voice with subtle reverb) People learned how to assemble borrowed answers, but forgot how silicon actually breathes... (quiet bitter sigh) They stitch together monsters out of ready-made libraries, and then wonder why the system drowns in memory leaks.
+НЕЙКОН: (energetic, with engineering drive, emphasizing every word) Exactly! That's why this sector wasn't built for memorizing syntax, but for reverse-debugging. The art of diving into someone else's broken spaghetti code... and forcing it to run before the ceiling caves in on your head.
+
+## jury_act3
+НЕЙКОН: (fast engaged pace, gesturing at the console) Look at the terminal. Down here, code literally governs the physics of the bunker. Flip a sign in the loop — and caustic fog floods the room. Forget to free the heap — and the airlock hydraulics slam shut.
+ЭЛИС: (playful, slightly teasing intonation, confidential whisper to the jury) And yes... don't even try feeding these tasks into external chatbots. In this room, your ChatGPT will simply break its teeth.
+НЕЙКОН: (satisfied chuckle, confident tone) No chance at all. To enter the right constant, a student has to tear their eyes away from the screen, (slower, deliberate pace) stand up, walk across the three-dimensional room to the pipes, and personally read the pressure off a physical gauge on the wall. Cheating is dead at the architectural level.
+
+## jury_act4
+ЭЛИС: (proudly, brightly, with a warm smile in voice) Moreover, the entire system runs completely offline on standard school computers. Zero somoni spent on foreign cloud servers or external APIs.
+НЕЙКОН: (chuckles softly, warm friendly teasing tone) Yeah... The only real expense in the project's budget is an uninterrupted supply of hot tea and basic life support for our lead developer Alisher while he stays up all night hunting down memory bugs! (short pause, voice becomes focused and leader-like) Three difficulty languages — from Python to hardcore pure C. The system has already been field-tested in classrooms and is officially protected by State Copyright Certificate number four-ten.
+
+## jury_act5
+НЕЙКОН: (deep breath, loud confident voice with a bold challenge into the hall) As for the technical details — you can ask the man standing right in front of you in person. Handing the microphone to my creator. Light it up, Alisher!
+ЭЛИС: (intimate fading whisper with a gentle smile) Systems nominal... Good luck with the defense.

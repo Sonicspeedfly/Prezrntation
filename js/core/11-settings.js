@@ -32,9 +32,21 @@
         titleGlitch:  "on",   // on | off
         font:         "norm", // norm | big
         // СИСТЕМА
-        locale:       "ru"    // ru | en
+        locale:       "ru",   // ru | en | tj | tj_col
+        juryIntro:    "on"    // on | off — the jury intro after «НОВАЯ ИГРА» (16-jury-intro.js)
     };
     let settingsState = Object.assign({}, SETTINGS_DEFAULTS);
+    /* The two settings that outlive a reload. A rehearsal that switched
+       the jury intro off should not have to switch it off again; and a
+       language picked once should be the one the page opens in — menu,
+       voice, intro and all — instead of Russian until it is picked again. */
+    const LOCALES = ["ru", "en", "tj", "tj_col"];
+    try {
+        const ji = localStorage.getItem("ts.juryIntro");
+        if (ji === "on" || ji === "off") settingsState.juryIntro = ji;
+        const loc = localStorage.getItem("ts.locale");
+        if (LOCALES.indexOf(loc) >= 0) settingsState.locale = loc;
+    } catch (e) {}
 
     function applySettings() {
         const root = document.documentElement;
@@ -102,6 +114,7 @@
     }
     function closePopup() {
         if (!popupBack.classList.contains("open")) return;
+        if (typeof VoiceExtras !== "undefined") VoiceExtras.stopTest();
         popupBack.classList.remove("open");
         Audio.playClose();
     }
@@ -247,6 +260,14 @@
                     { l: t("settings.system.locale.tj"),     v: "tj" },
                     { l: t("settings.system.locale.tj_col"), v: "tj_col" }
                 ])}
+                ${pickRow(t("settings.system.jury_intro"), "juryIntro", [
+                    { l: t("common.on"),  v: "on"  },
+                    { l: t("common.off"), v: "off" }
+                ])}
+                <div class="row">
+                  <label>${t("settings.system.sandbox")}</label>
+                  <button class="aisb-launch" data-act="sandbox">${t("settings.system.sandbox_btn")}</button>
+                </div>
                 <div class="row">
                   <label>${t("settings.system.reset")}</label>
                   <button class="reset-btn" data-act="reset">${t("settings.system.reset_btn")}</button>
@@ -272,8 +293,11 @@
                 if (v === "true")  v = true;
                 if (v === "false") v = false;
                 settingsState[k] = v;
+                if (k === "juryIntro" || k === "locale")
+                    try { localStorage.setItem(k === "locale" ? "ts.locale" : "ts.juryIntro", v); } catch (e) {}
                 applySettings();
                 renderSettingsPopup();
+                if (k === "juryIntro" && typeof JuryIntro !== "undefined") JuryIntro.prime();
             });
         });
         // sliders (live)
@@ -296,9 +320,15 @@
                forever. */
             Object.keys(settingsState).forEach(k => { delete settingsState[k]; });
             Object.assign(settingsState, SETTINGS_DEFAULTS);
+            try { localStorage.removeItem("ts.juryIntro"); localStorage.removeItem("ts.locale"); } catch (e) {}
             applySettings();
             renderSettingsPopup();
         });
+        // AI sandbox over the popup (20-ai-sandbox.js)
+        const sandbox = popupBody.querySelector('[data-act="sandbox"]');
+        if (sandbox && typeof AiSandbox !== "undefined") sandbox.addEventListener("click", () => AiSandbox.open());
+        // voice-path test under the voice slider (18-voice-extras.js)
+        if (typeof VoiceExtras !== "undefined") VoiceExtras.mount(popupBody, _settingsActiveTab);
     }
 
     function renderLoadPopup() {
@@ -323,8 +353,150 @@
             <div style="font-size:12px;letter-spacing:0.05em;line-height:1.7;
                         color:rgba(220,240,240,0.85);">
                 ${t("extra.body_html")}
+                <div style="margin-top:16px;padding-top:12px;
+                            border-top:1px solid rgba(126,207,196,0.18);">
+                    <button class="boot-btn" id="extraVoiceBtn"
+                        style="display:inline-flex;width:auto;padding:7px 16px;font-size:11px;">
+                        ${t("extra.voice")}
+                    </button>
+                </div>
             </div>
         `);
+        const vb = document.getElementById("extraVoiceBtn");
+        if (vb) vb.addEventListener("click", renderVoicePopup);
+    }
+
+    /* ============================================================
+       VOICE PANEL
+       ------------------------------------------------------------
+       Where a recording goes and what it must be called, without
+       anyone having to read the source to find out. One row per
+       spoken line: what plays now, and the exact path to drop a
+       file at to replace it.
+
+       Kept behind EXTRA rather than in the main menu — it is a
+       production tool, not something a jury needs to see.
+
+       The catalogue is read off the live objects, so a line added
+       to 08-alice-lines.js shows up here with no extra wiring.
+       Demo ids are listed explicitly: they live in STRINGS, which
+       has no marker for "this one is spoken aloud".
+       ============================================================ */
+    const VOICE_DEMO_LINES = [
+        ["demo.end.cry",       "demo.end.cry"],
+        ["demo.scare.voice",   "demo.scare.voice"],
+        ["demo.walk.voice",    "demo.walk.voice"],
+        ["demo.solved.hard",   "demo.ed.aliceSolved_hard"],
+        ["demo.solved.medium", "demo.ed.aliceSolved_medium"],
+        ["demo.solved.easy",   "demo.ed.aliceSolved_easy"]
+    ];
+
+    function voicePanelRows() {
+        const loc = (settingsState && settingsState.locale) || "ru";
+        const clips = (typeof VOICE_CLIPS !== "undefined" && VOICE_CLIPS) ? (VOICE_CLIPS[loc] || {}) : {};
+        const texts = (typeof VOICE_TEXT !== "undefined" && VOICE_TEXT) ? (VOICE_TEXT[loc] || {}) : {};
+        const deck = [], demo = [];
+
+        const push = function (arr, id, text, hasBaked) {
+            let mark = "○", tone = "rgba(220,240,240,0.35)";
+            if (clips[id])          { mark = "✓"; tone = "var(--good, #6effb3)"; }
+            else if (hasBaked)      { mark = "·"; tone = "rgba(220,240,240,0.6)"; }
+            arr.push({ id: id, mark: mark, tone: tone, text: text || "",
+                       path: "assets/voice/" + loc + "/" + id + ".mp3" });
+        };
+        /* Same rule as 09-alice-stream.js voiceSrcFor: the baked take is
+           Russian, so it only counts while the line is still untranslated. */
+        const deckLine = function (p) {
+            if (!p.voiceId) return;
+            const translated = loc !== "ru" && !!texts[p.voiceId];
+            push(deck, p.voiceId, texts[p.voiceId] || p.text, !!p.audio && !translated);
+        };
+
+        try { Object.keys(ALICE_STORY_LINES).forEach(function (k) { deckLine(ALICE_STORY_LINES[k]); }); } catch (e) {}
+        try { ALICE_BG_LINES.forEach(deckLine); } catch (e) {}
+
+        VOICE_DEMO_LINES.forEach(function (pair) {
+            push(demo, pair[0], t(pair[1]), false);
+        });
+        return { deck: deck, demo: demo, loc: loc };
+    }
+
+    function renderVoicePopup() {
+        const data = voicePanelRows();
+        const row = function (r) {
+            const txt = r.text.length > 72 ? r.text.slice(0, 72) + "…" : r.text;
+            return `
+            <div style="display:flex;gap:9px;align-items:flex-start;
+                        padding:6px 0;border-bottom:1px solid rgba(126,207,196,0.08);">
+                <span style="color:${r.tone};flex:0 0 12px;text-align:center;
+                             font-size:13px;line-height:1.3;">${r.mark}</span>
+                <span style="flex:1 1 auto;min-width:0;">
+                    <code style="font-size:10px;color:rgba(180,230,230,0.9);
+                                 letter-spacing:0.04em;">${r.path}</code>
+                    <span style="display:block;font-size:11px;opacity:0.55;
+                                 line-height:1.45;margin-top:2px;
+                                 overflow-wrap:anywhere;">${escapeHtml(txt)}</span>
+                </span>
+            </div>`;
+        };
+        openPopup(t("voice.title"), `
+            <div style="font-size:12px;letter-spacing:0.04em;line-height:1.6;
+                        color:rgba(220,240,240,0.85);">
+                <div id="voiceStudioSlot" style="margin:0 0 12px;"></div>
+                <p style="margin:0 0 10px;">${t("voice.lead_html")}</p>
+                <p style="margin:0 0 14px;font-size:11px;opacity:0.6;">
+                    ${t("voice.legend_html")}
+                </p>
+                <div style="max-height:46vh;overflow-y:auto;padding-right:4px;">
+                    <div style="font-size:10px;letter-spacing:0.22em;opacity:0.5;
+                                margin:0 0 4px;">${t("voice.g.deck")}</div>
+                    ${data.deck.map(row).join("")}
+                    <div style="font-size:10px;letter-spacing:0.22em;opacity:0.5;
+                                margin:16px 0 4px;">${t("voice.g.demo")}</div>
+                    ${data.demo.map(row).join("")}
+                </div>
+                <p style="margin:14px 0 4px;font-size:11px;opacity:0.6;">
+                    ${t("voice.cmd_hint")}
+                </p>
+                <code style="display:block;font-size:11px;padding:7px 10px;
+                             background:rgba(0,0,0,0.35);
+                             border:1px solid rgba(126,207,196,0.18);
+                             color:rgba(180,230,230,0.95);overflow-wrap:anywhere;">
+                    start.bat
+                </code>
+            </div>
+        `);
+        voiceStudioLink();
+    }
+
+    /* The studio needs serve.js. Offer the button only when this page is
+       actually being served by it from this machine; otherwise say how to
+       start it, rather than showing a button that leads to a 404. */
+    function voiceStudioLink() {
+        const slot = document.getElementById("voiceStudioSlot");
+        if (!slot) return;
+        const off = function () {
+            slot.innerHTML = `<p style="margin:0;font-size:11px;opacity:0.7;">${t("voice.studio_off_html")}</p>`;
+        };
+        if (!/^https?:$/.test(location.protocol) || typeof fetch !== "function") return off();
+        fetch("api/voice/info", { cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) {
+                if (!j || !j.ok || !j.local) return off();
+                slot.innerHTML = `<button class="boot-btn" id="voiceStudioBtn"
+                    style="display:inline-flex;width:auto;padding:8px 18px;font-size:12px;">
+                    ${t("voice.studio")}</button>`;
+                document.getElementById("voiceStudioBtn").addEventListener("click", function () {
+                    window.open("studio.html", "_blank", "noopener");
+                });
+            })
+            .catch(off);
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"]/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+        });
     }
 
     function renderExitPopup() {
@@ -360,6 +532,8 @@
     }
 
     function transitionToTerminal() {
+        // the deck is where Alice talks: her takes must be on their way by now
+        if (typeof loadAliceAudio === "function") loadAliceAudio();
         // overload flash → fade boot screen → strip .booting → CRT effects come back
         Audio.playGlitch(0.5);
         Audio.playTransition(1.0);
@@ -661,9 +835,22 @@
             }, 2200);
         }
 
+        /* «ВОЙТИ В СЕКТОР» at the end of the jury intro: straight into the
+           deck — the crash was already staged by the intro itself */
+        function enter() {
+            if (canceled) return;
+            canceled = true;
+            overlay.style.display = "none";
+            if (onDone) onDone();
+        }
+
         // skip button shows after a moment
         setTimeout(() => skip.classList.add("show"), 1100);
-        skip.addEventListener("click", () => { if (!canceled) panic(); });
+        skip.addEventListener("click", () => {
+            if (canceled) return;
+            if (typeof JuryIntro !== "undefined" && JuryIntro.active) { JuryIntro.abort(); return; }
+            panic();
+        });
 
         // run the sequence
         (async function run() {
@@ -674,6 +861,21 @@
                 { text: "[ OK ] /dev/alice mounted",   cls: "ok" }
             ]);
             if (canceled) return;
+            /* 24%: the jury intro hijacks the screen (16-jury-intro.js).
+               If its audio never arrives it hands back and loading goes on. */
+            if (typeof JuryIntro !== "undefined" && JuryIntro.enabled()) {
+                await ramp(24, 300);
+                if (canceled) return;
+                const outcome = await JuryIntro.run({ setStatus, addLine });
+                if (canceled) return;
+                if (outcome === "enter") { enter(); return; }
+                if (outcome === "skip")  { panic(); return; }
+                addLine("[WARN] carrier lost" + (JuryIntro.why ? " (" + JuryIntro.why + ")" : "") + " — resuming load", "warn");
+            } else if (typeof JuryIntro !== "undefined") {
+                /* switched off in settings (it persists): say so, or a
+                   rehearsal is left guessing why the intro never came */
+                addLine("[ -- ] CH-104 jury broadcast: off · settings → system");
+            }
             await ramp(36, 750, "compiling shaders …", [
                 { text: "[ OK ] crt_filter.glsl",      cls: "ok" },
                 { text: "[ OK ] scanline.glsl",        cls: "ok" }

@@ -8,16 +8,17 @@
    see docs/ARCHITECTURE.md before moving anything between files.
    ============================================================ */
 
+    /* the two with human words in them are i18n keys (10-i18n.js) */
     const CMD_HINTS = [
         "alice --whisper",
         "ps aux | grep void",
         "cat /proc/alice/mood",
-        "rm -rf /memories/* # она просила",
+        { i18n: "alice.cmd.memories" },
         "gdb ./neikon core",
         "valgrind ./reality",
         "tail -f /var/log/sanity.log",
         "kill -9 $(pidof fear)",
-        "echo \"я здесь\" > /dev/alice",
+        { i18n: "alice.cmd.here" },
     ];
 
     const stream  = document.getElementById("aliceStream");
@@ -118,6 +119,167 @@
         return _aliceRecIndex[_aliceRecKey(text)] || null;
     }
     function aliceHasRecording(text) { return !!aliceRecordingFor(text); }
+
+    /* ============================================================
+       DROPPED-IN TAKES AND TRANSLATIONS
+       ------------------------------------------------------------
+       A line can be replaced from outside the source: record or attach
+       a take in the voice studio (or drop a file at
+       assets/voice/<locale>/<id>.<ext> and restart start.bat), and it
+       plays instead of the Russian take baked into 08-alice-lines.js.
+       Translations are typed in the studio too → VOICE_TEXT. See
+       voice/README.md.
+
+       Ids are stamped onto the line objects once, below, so the
+       lookup needs no extra argument threaded through every call
+       site — and so a line keeps its identity when its text is
+       rewritten, which matching on the string could not do.
+       ============================================================ */
+    (function stampVoiceIds() {
+        try {
+            Object.keys(ALICE_STORY_LINES).forEach(function (k) {
+                ALICE_STORY_LINES[k].voiceId = "deck.slide" + k.replace("SLIDE_", "");
+            });
+        } catch (e) {}
+        try {
+            ALICE_BG_LINES.forEach(function (l, i) {
+                l.voiceId = "deck.bg" + (i + 1 < 10 ? "0" : "") + (i + 1);
+            });
+        } catch (e) {}
+    })();
+
+    /* ============================================================
+       DECK VOICE, LOADED IN THE BACKGROUND
+       ------------------------------------------------------------
+       08-alice-lines.js carries only the text now; the sixteen takes
+       arrive later in 08b-alice-audio.js (1.7 MB). Kept out of
+       index.html on purpose: as a deferred script it held the whole
+       chain — no button on the page worked until it had downloaded,
+       which on a 1 Mbit/s mobile link was about seventeen seconds.
+
+       Until it lands, lines play as text only — the path a line with
+       no recording already took. aliceAudioArrived() attaches the takes
+       and drops the recording index, which was built from text-only
+       objects and would otherwise go on reporting "no recording".
+
+       Started ~1.2 s after load, or by the jury intro once its first
+       act is buffered (that act is what the room hears first, so it
+       gets the link to itself), or on entering the deck at the latest.
+       ============================================================ */
+    let aliceAudioState = "idle";      // idle | loading | ready | failed
+    function loadAliceAudio() {
+        warmDeckTakes();
+        /* a language with its own take for every line never plays the
+           Russian bundle: 1.7 MB of dead weight on a thin link */
+        if (!deckNeedsBaked()) return;
+        if (aliceAudioState === "loading" || aliceAudioState === "ready") return;
+        aliceAudioState = "loading";
+        const s = document.createElement("script");
+        s.src = "js/presentation/08b-alice-audio.js";
+        s.async = true;
+        s.onerror = function () {
+            aliceAudioState = "failed";
+            s.remove();
+            setTimeout(function () { if (aliceAudioState === "failed") { aliceAudioState = "idle"; loadAliceAudio(); } }, 8000);
+        };
+        document.head.appendChild(s);
+    }
+    function aliceAudioArrived() {
+        const A = window.ALICE_AUDIO || {};
+        const attach = function (p) { if (p && p.voiceId && A[p.voiceId]) p.audio = A[p.voiceId]; };
+        try { Object.keys(ALICE_STORY_LINES).forEach(function (k) { attach(ALICE_STORY_LINES[k]); }); } catch (e) {}
+        try { ALICE_BG_LINES.forEach(attach); } catch (e) {}
+        _aliceRecIndex = null;
+        aliceAudioState = "ready";
+    }
+    if (typeof document !== "undefined") {
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function () {
+                /* the jury intro asks for the link first; it calls loadAliceAudio itself */
+                if (!window.__juryIntroHoldsLink) loadAliceAudio();
+            }, 1200);
+        });
+    }
+
+    function voiceLocale() {
+        const s = (typeof settingsState !== "undefined") ? settingsState : null;
+        return (s && s.locale) || "ru";
+    }
+    function deckLines() {
+        const out = [];
+        try { Object.keys(ALICE_STORY_LINES).forEach(function (k) { out.push(ALICE_STORY_LINES[k]); }); } catch (e) {}
+        try { ALICE_BG_LINES.forEach(function (l) { out.push(l); }); } catch (e) {}
+        return out;
+    }
+    /* Own recording for this line in this locale, else null. Never falls
+       through to another language: the wrong voice is worse than none. */
+    function voiceClipUrl(phraseObj) {
+        if (!phraseObj || !phraseObj.voiceId) return null;
+        if (typeof VOICE_CLIPS === "undefined" || !VOICE_CLIPS) return null;
+        const byLoc = VOICE_CLIPS[voiceLocale()];
+        return (byLoc && byLoc[phraseObj.voiceId]) || null;
+    }
+    function voiceClipFor(phraseObj) {
+        const url = voiceClipUrl(phraseObj);
+        return (url && deckWarm[url]) || url;
+    }
+    /* Whether any line would still play the baked Russian take. */
+    function deckNeedsBaked() {
+        return deckLines().some(function (p) { return !voiceClipUrl(p) && voiceTextFor(p) === p.text; });
+    }
+
+    /* The takes of the current language, downloaded one at a time in the
+       background — the same job the Russian bundle does for Russian.
+       Fetched on demand instead, a line on a weak link showed its text
+       and stayed silent while its file crawled in. Started wherever the
+       bundle would be (loadAliceAudio) and again on a language switch;
+       a take re-recorded in the studio gets a new ?v= and is fetched anew. */
+    const deckWarm  = {};              // take url -> blob: url
+    const deckTried = {};              // take url -> true once attempted
+    let deckWarming = false;
+    function warmDeckTakes() {
+        if (deckWarming || typeof fetch !== "function") return;
+        if (typeof location === "undefined" || !/^https?:$/.test(location.protocol)) return;
+        const wanted = function () {
+            return deckLines().map(voiceClipUrl).filter(function (u) { return u && !/^data:/.test(u) && !deckTried[u]; });
+        };
+        if (!wanted().length) return;
+        deckWarming = true;
+        (function next() {
+            /* the jury intro wants the link: pause, releaseLink() resumes us */
+            if (window.__juryIntroHoldsLink) { deckWarming = false; return; }
+            const url = wanted()[0];   // re-read every time: the language may change mid-way
+            if (!url) { deckWarming = false; return; }
+            deckTried[url] = true;
+            fetch(url)
+                .then(function (r) { return r.ok ? r.blob() : null; })
+                .then(function (b) { if (b) deckWarm[url] = URL.createObjectURL(b); })
+                .catch(function () {})
+                .then(next);
+        })();
+    }
+    /* Translated subtitle if one exists, otherwise the Russian base. */
+    function voiceTextFor(phraseObj) {
+        if (!phraseObj) return "";
+        const id = phraseObj.voiceId;
+        if (id && typeof VOICE_TEXT !== "undefined" && VOICE_TEXT) {
+            const byLoc = VOICE_TEXT[voiceLocale()];
+            if (byLoc && byLoc[id]) return byLoc[id];
+        }
+        return phraseObj.text;
+    }
+    /* What to feed the <audio> element: a take recorded for this locale
+       wins; then the baked-in Russian take, but only while the subtitle is
+       still Russian too — under a translated subtitle it would be the wrong
+       language; then nothing, and the line is text only. */
+    function voiceSrcFor(phraseObj) {
+        const own = voiceClipFor(phraseObj);
+        if (own) return own;
+        if (!phraseObj || voiceTextFor(phraseObj) !== phraseObj.text) return null;
+        if (phraseObj.audio && aliceRecordingFor(phraseObj.text))
+            return "data:audio/mpeg;base64," + phraseObj.audio;
+        return null;
+    }
 
     function alicePlaybackAllowed() {
         if (window.__chatterEnabled === false) return false;
@@ -319,6 +481,10 @@
     function playAliceVoice(phraseObj, opts) {
         if (!phraseObj || !phraseObj.text) return null;
         if (window.__chatterEnabled === false) return null;
+        /* a long track (jury intro, voice test, the extra, the evidence
+           video) owns the room: a deck line here would also take the
+           VoiceBus with interrupt and cut that track off mid-sentence */
+        if (window.__voiceMediaHold) return null;
 
         // while the demo overlay is active, the slide-deck's Alice has to
         // stay completely silent — otherwise her chatter fights the game's
@@ -337,17 +503,20 @@
         const glitchOn = glitchP.wobbleDepth > 0 || glitchP.tremoloDepth > 0
                        || glitchP.pitchJitter > 0 || glitchP.dropoutEveryMs > 0;
 
+        const subtitle = voiceTextFor(phraseObj);
+
         // SFX muted but chatter is on → still surface the text, skip audio
         if (typeof settingsState !== "undefined" && settingsState.sfxOn === false) {
-            return pushAliceLine(phraseObj.text, { glitch: glitchOn });
+            return pushAliceLine(subtitle, { glitch: glitchOn });
         }
 
         if (isAliceSpeaking()) return null;
 
-        const lineEl = pushAliceLine(phraseObj.text, { glitch: glitchOn });
+        const lineEl = pushAliceLine(subtitle, { glitch: glitchOn });
 
-        if (!aliceRecordingFor(phraseObj.text)) {
-            return lineEl;   // no recording for this line: text only
+        const voiceSrc = voiceSrcFor(phraseObj);
+        if (!voiceSrc) {
+            return lineEl;   // nothing recorded for this line here: text only
         }
         // one voice at a time, across both engines — a sample outranks speech
         if (typeof VoiceBus !== "undefined"
@@ -359,7 +528,7 @@
         let audio;
         try {
             audio = document.createElement("audio");
-            audio.src = "data:audio/mpeg;base64," + phraseObj.audio;
+            audio.src = voiceSrc;
         } catch (e) {
             return lineEl;
         }
@@ -591,7 +760,8 @@
     /* fake command-line teaser at the bottom — types & deletes */
     let cmdIdx = 0, charIdx = 0, deleting = false;
     function fakeCmdLoop() {
-        const cmd = CMD_HINTS[cmdIdx];
+        const h = CMD_HINTS[cmdIdx];
+        const cmd = typeof h === "string" ? h : t(h.i18n);
         if (!deleting) {
             charIdx++;
             fakeCmd.textContent = cmd.slice(0, charIdx);
@@ -616,14 +786,10 @@
     function boot() {
         renderSlide(0, { silent: true });
 
-        // initial alice lines, staggered, so chat is never empty
-        const opening = [
-            "...канал /dev/alice открыт. слышишь меня?",
-            "питание нестабильно. сканлайн дрожит.",
-            "напиши что-нибудь правильное. пожалуйста."
-        ];
-        opening.forEach((line, i) => {
-            setTimeout(() => pushAliceLine(line, { glitch: i === 1 }), 350 + i * 700);
+        // initial alice lines, staggered, so chat is never empty;
+        // read at push time, after the saved language is applied
+        ["alice.open1", "alice.open2", "alice.open3"].forEach((key, i) => {
+            setTimeout(() => pushAliceLine(t(key), { glitch: i === 1 }), 350 + i * 700);
         });
 
         setTimeout(aliceLoop, 3500);
@@ -663,10 +829,11 @@
     /* ============================================================
        I18N — string table + locale switcher
        ------------------------------------------------------------
-       Static UI strings (menu / topbar / popups / settings) live
-       here, keyed by stable IDs. The current locale is driven by
-       settingsState.locale ("ru" | "en"). Slides have their own
-       per-locale arrays (SLIDES_BY_LOCALE). Alice voice lines
-       stay in Russian regardless of locale — the audio is
-       recorded in Russian, the text must match the audio.
+       Static UI strings (menu / topbar / popups / settings) live in
+       10-i18n.js, keyed by stable IDs. The current locale is driven
+       by settingsState.locale ("ru" | "en" | "tj" | "tj_col"). Slides
+       have their own per-locale arrays (SLIDES_BY_LOCALE). Alice's
+       deck lines speak the take recorded for the locale with its
+       translated text, else the Russian take with the Russian text —
+       the text always matches the voice (voiceSrcFor above).
        ============================================================ */
